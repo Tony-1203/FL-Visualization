@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联邦学习客户端 - 数据上传</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 背景动画粒子 */
+        .background-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: float 12s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-30px) rotate(180deg); opacity: 0.8; }
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1 i {
+            background: linear-gradient(135deg, #ffd89b, #19547b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2rem;
+        }
+
+        .user-info {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .card-header i {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2rem;
+        }
+
+        .card-header h2 {
+            color: #2d3748;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .upload-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-section:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+        }
+
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-input-group {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .file-input-group label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            background: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-input:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+            background: rgba(102, 126, 234, 0.02);
+        }
+
+        .file-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 30px auto 0;
+            position: relative;
+            z-index: 2;
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-message {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .status-info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .status-loading {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .container {
+                margin: 20px;
+                padding: 15px;
+            }
+
+            .dashboard-card {
+                padding: 25px;
+                border-radius: 20px;
+            }
+
+            .upload-section {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* 新增样式 - 多文件上传 */
+        .file-input-hint {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .selected-files {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .selected-files h4 {
+            color: white;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #filesList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .file-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .file-tag.mhd {
+            background: rgba(52, 152, 219, 0.3);
+        }
+
+        .file-tag.raw {
+            background: rgba(46, 204, 113, 0.3);
+        }
+
+        /* 在线状态指示器 */
+        .online-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 25px;
+            color: white;
+            font-size: 0.9rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .online-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .offline-indicator {
+            background: #dc3545;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+
+        /* 实时状态显示 */
+        .realtime-status {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .realtime-status h4 {
+            color: white;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景动画粒子 -->
+    <div class="background-particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 4.5s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 1.5s;"></div>
+    </div>
+
+    <!-- 在线状态指示器 -->
+    <div class="online-status" id="onlineStatus">
+        <div class="online-indicator" id="statusIndicator"></div>
+        <span id="statusText">连接中...</span>
+    </div>
+
+    <!-- 页面头部 -->
+    <div class="header">
+        <div class="header-content">
+            <h1>
+                <i class="fas fa-cloud-upload-alt"></i>
+                联邦学习客户端
+            </h1>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span>欢迎, {{ username }}!</span>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    登出
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 实时状态显示 -->
+        <div class="realtime-status">
+            <h4><i class="fas fa-broadcast-tower"></i> 实时状态</h4>
+            <div id="realtimeInfo">
+                <p><i class="fas fa-users"></i> 在线用户: <span id="onlineCount">-</span></p>
+                <p><i class="fas fa-server"></i> 服务器状态: <span id="serverStatus">-</span></p>
+                <p><i class="fas fa-clock"></i> 最后更新: <span id="lastUpdate">-</span></p>
+            </div>
+        </div>
+
+        <!-- 文件上传卡片 -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <i class="fas fa-file-upload"></i>
+                <h2>数据文件上传</h2>
+            </div>
+
+            <div class="upload-section">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="file-input-group">
+                        <label for="files">
+                            <i class="fas fa-file-medical"></i>
+                            选择多个文件 (.mhd, .raw)
+                        </label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="files" name="files" accept=".mhd,.raw" multiple required class="file-input">
+                            <div class="file-input-hint">
+                                <i class="fas fa-info-circle"></i>
+                                可以同时选择多个MHD和RAW文件，支持批量上传
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="selectedFiles" class="selected-files" style="display:none;">
+                        <h4><i class="fas fa-list"></i> 已选择的文件:</h4>
+                        <div id="filesList"></div>
+                    </div>
+                    
+                    <button type="button" onclick="uploadFiles()" class="upload-btn" id="uploadBtn">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        上传文件
+                    </button>
+                </form>
+                
+                <div id="uploadStatus" class="status-message" style="display:none;"></div>
+                
+                {% if status.uploaded %}
+                    <div class="status-message status-success">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>文件上传成功!</strong><br>
+                            <small>路径: {{ status.data_path }}</small>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="status-message status-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>等待文件上传</strong><br>
+                            <small>请选择 MHD 和 RAW 文件进行上传</small>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WebSocket 连接
+        let socket = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+
+        // 初始化 WebSocket 连接
+        function initializeSocket() {
+            socket = io();
+
+            socket.on('connect', function() {
+                console.log('WebSocket 连接成功');
+                updateConnectionStatus(true);
+                reconnectAttempts = 0;
+                
+                // 请求状态更新
+                socket.emit('request_status_update');
+            });
+
+            socket.on('disconnect', function() {
+                console.log('WebSocket 连接断开');
+                updateConnectionStatus(false);
+                
+                // 尝试重连
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    setTimeout(() => {
+                        reconnectAttempts++;
+                        console.log(`尝试重连... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                        socket.connect();
+                    }, 2000 * reconnectAttempts);
+                }
+            });
+
+            socket.on('user_status_update', function(data) {
+                updateUserStatus(data);
+            });
+
+            socket.on('heartbeat_response', function(data) {
+                console.log('心跳响应:', data.timestamp);
+            });
+
+            // 定期发送心跳
+            setInterval(() => {
+                if (socket && socket.connected) {
+                    socket.emit('heartbeat');
+                }
+            }, 30000); // 每30秒发送一次心跳
+        }
+
+        // 更新连接状态
+        function updateConnectionStatus(isConnected) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            if (isConnected) {
+                statusIndicator.className = 'online-indicator';
+                statusText.textContent = '已连接';
+            } else {
+                statusIndicator.className = 'online-indicator offline-indicator';
+                statusText.textContent = '连接断开';
+            }
+        }
+
+        // 更新用户状态
+        function updateUserStatus(data) {
+            document.getElementById('onlineCount').textContent = data.total_online;
+            document.getElementById('serverStatus').textContent = 
+                data.online_servers.length > 0 ? '在线' : '离线';
+            document.getElementById('lastUpdate').textContent = 
+                new Date(data.timestamp).toLocaleTimeString();
+        }
+
+        // 创建动态粒子效果
+        function createParticles() {
+            const particlesContainer = document.querySelector('.background-particles');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (Math.random() * 8 + 8) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // 文件上传功能
+        async function uploadFiles() {
+            const form = document.getElementById('uploadForm');
+            const formData = new FormData(form);
+            const statusDiv = document.getElementById('uploadStatus');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            // 检查文件是否选择
+            const filesInput = document.getElementById('files');
+            const files = filesInput.files;
+
+            if (!files || files.length === 0) {
+                showStatus('error', '请至少选择一个文件!', 'fas fa-exclamation-triangle');
+                return;
+            }
+
+            // 检查文件类型
+            let mhdCount = 0, rawCount = 0;
+            for (let file of files) {
+                if (file.name.toLowerCase().endsWith('.mhd')) mhdCount++;
+                else if (file.name.toLowerCase().endsWith('.raw')) rawCount++;
+            }
+
+            if (mhdCount === 0 && rawCount === 0) {
+                showStatus('error', '请选择 .mhd 或 .raw 文件!', 'fas fa-exclamation-triangle');
+                return;
+            }
+
+            // 显示加载状态
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<div class="loading-spinner"></div> 上传中...';
+            showStatus('loading', `正在上传 ${files.length} 个文件，请稍候...`, 'loading-spinner');
+
+            try {
+                const response = await fetch("/client/upload", {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    showStatus('success', 
+                        `<strong>上传成功!</strong><br>
+                         <small>已上传 ${result.uploaded_files.length} 个文件</small><br>
+                         <small>总计: ${result.total_files} 个文件 (${result.file_pairs} 对)</small>`, 
+                        'fas fa-check-circle'
+                    );
+                    
+                    // 重置表单和选择的文件显示
+                    form.reset();
+                    document.getElementById('selectedFiles').style.display = 'none';
+                    
+                    // 延迟后重新加载页面以更新状态
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    showStatus('error', 
+                        `<strong>上传失败</strong><br><small>${result.error || '未知错误'}</small>`, 
+                        'fas fa-times-circle'
+                    );
+                }
+            } catch (error) {
+                showStatus('error', 
+                    `<strong>网络错误</strong><br><small>${error.message}</small>`, 
+                    'fas fa-wifi'
+                );
+            } finally {
+                // 恢复按钮状态
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> 上传文件';
+            }
+        }
+
+        // 显示选择的文件
+        function updateSelectedFiles() {
+            const filesInput = document.getElementById('files');
+            const selectedFilesDiv = document.getElementById('selectedFiles');
+            const filesListDiv = document.getElementById('filesList');
+            
+            if (filesInput.files.length === 0) {
+                selectedFilesDiv.style.display = 'none';
+                return;
+            }
+
+            selectedFilesDiv.style.display = 'block';
+            filesListDiv.innerHTML = '';
+
+            Array.from(filesInput.files).forEach(file => {
+                const fileTag = document.createElement('div');
+                const ext = file.name.toLowerCase().endsWith('.mhd') ? 'mhd' : 
+                           file.name.toLowerCase().endsWith('.raw') ? 'raw' : 'other';
+                
+                fileTag.className = `file-tag ${ext}`;
+                fileTag.innerHTML = `
+                    <i class="fas fa-file${ext === 'mhd' ? '-medical' : ext === 'raw' ? '-code' : ''}"></i>
+                    ${file.name}
+                `;
+                filesListDiv.appendChild(fileTag);
+            });
+        }
+
+        // 显示状态消息
+        function showStatus(type, message, icon) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = `status-message status-${type}`;
+            
+            if (icon === 'loading-spinner') {
+                statusDiv.innerHTML = `<div class="loading-spinner"></div><div>${message}</div>`;
+            } else {
+                statusDiv.innerHTML = `<i class="${icon}"></i><div>${message}</div>`;
+            }
+        }
+
+        // 文件输入美化
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            initializeSocket(); // 初始化 WebSocket 连接
+            
+            // 文件输入交互
+            const fileInputs = document.querySelectorAll('.file-input');
+            fileInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        this.style.borderColor = '#28a745';
+                        this.style.backgroundColor = 'rgba(40, 167, 69, 0.05)';
+                    } else {
+                        this.style.borderColor = 'rgba(102, 126, 234, 0.2)';
+                        this.style.backgroundColor = 'white';
+                    }
+                });
+            });
+
+            // 拖拽上传功能
+            const uploadSection = document.querySelector('.upload-section');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadSection.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadSection.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadSection.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                uploadSection.style.borderColor = '#667eea';
+                uploadSection.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+            }
+
+            function unhighlight(e) {
+                uploadSection.style.borderColor = 'rgba(102, 126, 234, 0.3)';
+                uploadSection.style.backgroundColor = 'linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05))';
+            }
+
+            uploadSection.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    // 自动分配文件到对应输入框
+                    Array.from(files).forEach(file => {
+                        if (file.name.toLowerCase().endsWith('.mhd')) {
+                            document.getElementById('mhd_file').files = createFileList([file]);
+                        } else if (file.name.toLowerCase().endsWith('.raw')) {
+                            document.getElementById('raw_file').files = createFileList([file]);
+                        }
+                    });
+                    
+                    // 触发change事件
+                    fileInputs.forEach(input => {
+                        if (input.files.length > 0) {
+                            input.dispatchEvent(new Event('change'));
+                        }
+                    });
+                }
+            }
+
+            function createFileList(files) {
+                const dt = new DataTransfer();
+                files.forEach(file => dt.items.add(file));
+                return dt.files;
+            }
+        });
+    </script>
+</body>
+</html>

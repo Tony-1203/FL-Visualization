@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联邦学习平台 - 登录</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 背景动画粒子 */
+        .background-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 0.5; }
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 50px 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 450px;
+            position: relative;
+            z-index: 10;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header i {
+            font-size: 4rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            position: absolute;
+            top: 50%;
+            left: 45px;
+            transform: translateY(-50%);
+            color: #718096;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            background: white;
+            padding: 0 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 18px 20px 18px 45px;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input:focus + label,
+        .form-group input:not(:placeholder-shown) + label {
+            top: 0;
+            left: 15px;
+            font-size: 0.8rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .form-group input:focus ~ i {
+            color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn i {
+            margin-right: 8px;
+        }
+
+        .role-info {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .role-info h3 {
+            color: #2d3748;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .role-item i {
+            width: 16px;
+            color: #667eea;
+        }
+
+        /* 错误消息弹窗样式 */
+        .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .error-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .error-modal i {
+            font-size: 3rem;
+            color: #e53e3e;
+            margin-bottom: 15px;
+        }
+
+        .error-modal h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .error-modal p {
+            color: #718096;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .error-modal button {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .error-modal button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(229, 62, 62, 0.4);
+        }
+
+        /* 成功消息 */
+        .success-message {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 500px) {
+            .login-container {
+                width: 95%;
+                padding: 30px 25px;
+                margin: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header i {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-particles">
+        <!-- 动态生成粒子 -->
+    </div>
+
+    <div class="login-container">
+        <div class="header">
+            <i class="fas fa-network-wired"></i>
+            <h1>联邦学习平台</h1>
+            <p>分布式智能训练系统</p>
+        </div>
+
+        <div id="successMessage" class="success-message">
+            <i class="fas fa-check-circle"></i>
+            <span>登录成功，正在跳转...</span>
+        </div>
+
+        <form id="loginForm" method="post" role="form" aria-label="用户登录表单">
+            <div class="form-group">
+                <input type="text" id="username" name="username" placeholder=" " required 
+                       aria-label="请输入用户名" autocomplete="username">
+                <label for="username">用户名</label>
+                <i class="fas fa-user" aria-hidden="true"></i>
+            </div>
+            
+            <div class="form-group">
+                <input type="password" id="password" name="password" placeholder=" " required 
+                       aria-label="请输入密码" autocomplete="current-password">
+                <label for="password">密码</label>
+                <i class="fas fa-lock" aria-hidden="true"></i>
+            </div>
+            
+            <button type="submit" class="login-btn" aria-label="点击登录系统">
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                登录系统
+            </button>
+        </form>
+
+        <div class="role-info">
+            <h3><i class="fas fa-info-circle"></i> 测试账号</h3>
+            <div class="role-item">
+                <i class="fas fa-server"></i>
+                <span>服务器端: server / 1</span>
+            </div>
+            <div class="role-item">
+                <i class="fas fa-desktop"></i>
+                <span>客户端: client1, client2, client3 / 1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误弹窗 -->
+    <div id="errorOverlay" class="error-overlay" role="dialog" aria-modal="true" aria-labelledby="errorTitle">
+        <div class="error-modal">
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+            <h3 id="errorTitle">登录失败</h3>
+            <p id="errorMessage">用户名或密码错误，请检查后重试。</p>
+            <button onclick="closeErrorModal()" aria-label="关闭错误弹窗">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 生成背景粒子
+        function generateParticles() {
+            const particleContainer = document.querySelector('.background-particles');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // 显示错误弹窗
+        function showErrorModal(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorOverlay').style.display = 'flex';
+        }
+
+        // 关闭错误弹窗
+        function closeErrorModal() {
+            document.getElementById('errorOverlay').style.display = 'none';
+        }
+
+        // 表单提交处理
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const loginBtn = document.querySelector('.login-btn');
+            const originalText = loginBtn.innerHTML;
+            
+            // 显示加载状态
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+            loginBtn.disabled = true;
+            
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data.includes('无效的凭据') || data.includes('登录失败')) {
+                    // 显示错误弹窗
+                    showErrorModal('用户名或密码错误，请检查后重试。');
+                    loginBtn.innerHTML = originalText;
+                    loginBtn.disabled = false;
+                } else {
+                    // 登录成功
+                    document.getElementById('successMessage').style.display = 'flex';
+                    setTimeout(() => {
+                        // 重新提交表单进行实际跳转
+                        this.submit();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                showErrorModal('网络错误，请稍后重试。');
+                loginBtn.innerHTML = originalText;
+                loginBtn.disabled = false;
+            });
+        });
+
+        // 点击遮罩关闭弹窗
+        document.getElementById('errorOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeErrorModal();
+            }
+        });
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeErrorModal();
+            }
+        });
+
+        // 页面加载时生成粒子
+        window.addEventListener('load', generateParticles);
+
+        // 检查是否有错误参数
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error')) {
+            showErrorModal('登录失败，请检查用户名和密码。');
+        }
+    </script>
+</body>
+</html>

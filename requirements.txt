@@ -1,0 +1,47 @@
+# Flask web application dependencies
+Flask==2.3.3
+
+# Data manipulation and analysis
+numpy==1.24.3
+pandas==2.0.3
+
+# Deep learning framework
+torch==2.0.1
+torchvision==0.15.2
+
+# Medical image processing
+SimpleITK==2.2.1
+
+# Scientific computing
+scipy==1.11.1
+
+# Visualization
+matplotlib==3.7.2
+
+# Progress bars
+tqdm==4.65.0
+
+# gunicorn
+gunicorn
+
+# Additional Python standard library modules used:
+# - os (built-in)
+# - copy (built-in)
+# - sys (built-in)
+# - io (built-in)
+# - builtins (built-in)
+# - base64 (built-in)
+# - shutil (built-in)
+# - threading (built-in)
+# - time (built-in)
+# - datetime (built-in)
+# - queue (built-in)
+# - warnings (built-in)
+# - typing (built-in)
+# - random (built-in)
+# - collections (built-in)
+# - tempfile (built-in)
+
+# Note: This requirements.txt file contains the main external dependencies
+# needed to run the federated learning application. Standard library modules
+# are included as comments for reference but don't need to be installed.
