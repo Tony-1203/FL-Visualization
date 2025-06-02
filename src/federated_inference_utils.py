@@ -34,8 +34,12 @@ class FederatedLungNodulePredictor:
             model_path: 联邦训练模型路径
             device: 计算设备
         """
-        self.device = device or torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = (
+            torch.device(device)
+            if isinstance(device, str)
+            else (
+                device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            )
         )
         self.model = self.load_federated_model(model_path)
 
@@ -58,8 +62,17 @@ class FederatedLungNodulePredictor:
                 print(f"模型来自联邦学习第 {round_num} 轮")
             else:
                 # 兼容普通模型格式
-                model.load_state_dict(checkpoint, weights_only=False)
-                print("加载普通格式模型")
+                try:
+                    model.load_state_dict(checkpoint)
+                    print("加载普通格式模型")
+                except (TypeError, RuntimeError) as e:
+                    # 处理旧版本 PyTorch 兼容性问题或状态字典不匹配
+                    try:
+                        model.load_state_dict(checkpoint, strict=False)
+                        print("加载普通格式模型（非严格模式）")
+                    except Exception as e2:
+                        print(f"警告: 无法加载模型状态字典: {e2}，使用随机初始化的模型")
+                        # 不加载状态字典，使用默认初始化
         else:
             print(f"警告: 模型文件不存在 {model_path}，使用随机初始化的模型")
 

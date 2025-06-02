@@ -1,0 +1,212 @@
+name: FL-Visualization Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Code Quality & Linting
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy bandit
+        pip install -r requirements.txt
+        
+    - name: Run Black formatter check
+      run: black --check --diff .
+      
+    - name: Run isort import sorting check
+      run: isort --check-only --diff .
+      
+    - name: Run flake8 linting
+      run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      
+    - name: Run mypy type checking
+      run: mypy app.py src/ --ignore-missing-imports
+      continue-on-error: true
+      
+    - name: Run bandit security check
+      run: bandit -r . -x tests/ -f json -o bandit-report.json
+      continue-on-error: true
+      
+    - name: Upload bandit results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: bandit-results
+        path: bandit-report.json
+
+  test:
+    runs-on: ubuntu-latest
+    name: Run Tests
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-flask pytest-socketio coverage
+        pip install -r requirements.txt
+        
+    - name: Create test directories
+      run: |
+        mkdir -p uploads/client1_data uploads/client2_data uploads/client3_data
+        mkdir -p src/test_data
+        
+    - name: Run unit tests
+      run: |
+        python -m pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-reports
+        path: htmlcov/
+
+  integration-test:
+    runs-on: ubuntu-latest
+    name: Integration Tests
+    
+    services:
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-flask pytest-socketio
+        pip install -r requirements.txt
+        
+    - name: Create test environment
+      run: |
+        mkdir -p uploads/client1_data uploads/client2_data uploads/client3_data
+        mkdir -p src/test_data
+        echo "test_data" > src/test_data/dummy_file.txt
+        
+    - name: Run Flask application tests
+      run: |
+        python -m pytest tests/test_integration.py -v
+        
+    - name: Test Socket.IO functionality
+      run: |
+        python -m pytest tests/test_socketio.py -v
+
+  docker-test:
+    runs-on: ubuntu-latest
+    name: Docker Build Test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+      
+    - name: Create Dockerfile for testing
+      run: |
+        cat > Dockerfile << 'EOF'
+        FROM python:3.9-slim
+        
+        WORKDIR /app
+        
+        # Install system dependencies
+        RUN apt-get update && apt-get install -y \
+            libgl1-mesa-glx \
+            libglib2.0-0 \
+            && rm -rf /var/lib/apt/lists/*
+        
+        # Copy requirements and install Python dependencies
+        COPY requirements.txt .
+        RUN pip install --no-cache-dir -r requirements.txt
+        
+        # Copy application code
+        COPY . .
+        
+        # Create necessary directories
+        RUN mkdir -p uploads/client1_data uploads/client2_data uploads/client3_data
+        
+        EXPOSE 5002
+        
+        CMD ["python", "app.py"]
+        EOF
+        
+    - name: Build Docker image
+      run: |
+        docker build -t fl-visualization:test .
+        
+    - name: Test Docker container
+      run: |
+        docker run --rm -d --name fl-test -p 5002:5002 fl-visualization:test
+        sleep 10
+        curl -f http://localhost:5002 || exit 1
+        docker stop fl-test
