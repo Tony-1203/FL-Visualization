@@ -106,7 +106,7 @@
         </div>
 
         <!-- 服务器日志 -->
-        <div class="card">
+        <div class="card-clients">
             <div class="card-header">
                 <i class="fas fa-clipboard-list"></i>
                 <h2>服务器日志</h2>
@@ -128,7 +128,7 @@
         </div>
 
         <!-- 客户端状态 -->
-        <div class="card">
+        <div class="card-clients">
             <div class="card-header">
                 <i class="fas fa-users"></i>
                 <h2>客户端状态</h2>
@@ -167,7 +167,7 @@
         </div>
 
         <!-- 推理功能 -->
-        <div class="card">
+        <div class="card-infer">
             <div class="card-header">
                 <i class="fas fa-brain"></i>
                 <h2>模型推理</h2>
@@ -429,6 +429,12 @@
             const logContainer = document.getElementById('trainingLogs');
             if (!logContainer) return;
 
+            if (!logs || logs.length === 0) {
+                // 当没有日志时显示默认消息
+                logContainer.innerHTML = '<div class="log-entry">等待训练开始...</div>';
+                return;
+            }
+
             logContainer.innerHTML = '';
             logs.forEach(log => {
                 const logEntry = document.createElement('div');
@@ -522,6 +528,9 @@
                     `<div class="log-entry">${log}</div>`
                 ).join('');
                 serverLogsContainer.scrollTop = serverLogsContainer.scrollHeight;
+            } else {
+                // 服务器日志为空时显示默认消息
+                serverLogsContainer.innerHTML = '<div class="log-entry">等待日志信息...</div>';
             }
 
             // 显示训练日志
@@ -530,6 +539,9 @@
                     `<div class="log-entry">${log}</div>`
                 ).join('');
                 trainingLogsContainer.scrollTop = trainingLogsContainer.scrollHeight;
+            } else {
+                // 训练日志为空时显示默认消息
+                trainingLogsContainer.innerHTML = '<div class="log-entry">等待训练开始...</div>';
             }
         }
 

@@ -51,7 +51,7 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1550px;
     margin: 2rem auto;
     padding: 0 2rem;
     display: grid;
@@ -71,6 +71,36 @@ body {
 }
 
 .card:hover {
+    transform: translateY(-5px);
+}
+
+.card-infer {
+    background: rgba(255, 255, 255, 0.95);
+    max-width: 50rem;
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.card-infer:hover {
+    transform: translateY(-5px);
+}
+
+.card-clients {
+    background: rgba(255, 255, 255, 0.95);
+    max-width: 45rem;
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.card-clients:hover {
     transform: translateY(-5px);
 }
 
@@ -480,7 +510,7 @@ tr:hover {
 .btn-danger {
     background: linear-gradient(45deg, #ff6b6b, #ee5a24);
     color: white;
-    padding: 8px 16px;
+    padding: 6px 13px;
     border: none;
     border-radius: 20px;
     font-size: 0.9rem;
@@ -883,6 +913,7 @@ tr:hover {
 /* 推理文件列表样式 */
 .inference-file-list {
     background: rgba(255, 255, 255, 0.8);
+    max-width: 100%;
     border-radius: 12px;
     padding: 1rem;
     margin: 1.5rem 0;
