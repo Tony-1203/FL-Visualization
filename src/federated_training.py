@@ -139,52 +139,41 @@ class FederatedServer:
             # 初始化聚合参数
             global_params = OrderedDict()
 
-            # 获取当前全局模型的参数作为基础
-            current_global_params = self.global_model.state_dict()
-
             # 获取第一个客户端的参数结构
             first_client_params = client_params_list[0]
 
             # 对每个参数进行加权平均
-            for param_name in current_global_params.keys():
-                current_param = current_global_params[param_name]
+            for param_name in first_client_params.keys():
+                param_tensor = first_client_params[param_name]
 
-                # 如果客户端参数中有这个参数，则进行聚合
-                if param_name in first_client_params:
-                    param_tensor = first_client_params[param_name]
+                # 检查是否是需要跳过的参数（如BatchNorm的num_batches_tracked）
+                if param_name.endswith("num_batches_tracked"):
+                    # 对于不需要聚合的参数，直接使用第一个客户端的值
+                    global_params[param_name] = param_tensor.clone()
+                    continue
 
-                    # 检查是否是需要跳过的参数（如BatchNorm的num_batches_tracked）
-                    if param_name.endswith("num_batches_tracked"):
-                        # 对于不需要聚合的参数，直接使用第一个客户端的值
-                        global_params[param_name] = param_tensor.clone()
-                        continue
+                # 确保参数是浮点类型以支持加权平均
+                if param_tensor.dtype in [torch.int32, torch.int64, torch.long]:
+                    # 对于整型参数，取第一个客户端的值（通常是索引类型参数）
+                    global_params[param_name] = param_tensor.clone()
+                    continue
 
-                    # 确保参数是浮点类型以支持加权平均
-                    if param_tensor.dtype in [torch.int32, torch.int64, torch.long]:
-                        # 对于整型参数，取第一个客户端的值（通常是索引类型参数）
-                        global_params[param_name] = param_tensor.clone()
-                        continue
+                # 对浮点参数进行加权求和
+                weighted_sum = torch.zeros_like(param_tensor, dtype=torch.float32)
 
-                    # 对浮点参数进行加权求和
-                    weighted_sum = torch.zeros_like(param_tensor, dtype=torch.float32)
+                for client_params, weight in zip(
+                    client_params_list, normalized_weights
+                ):
+                    client_param = client_params[param_name]
+                    if client_param.dtype != torch.float32:
+                        client_param = client_param.float()
+                    weighted_sum += weight * client_param
 
-                    for client_params, weight in zip(
-                        client_params_list, normalized_weights
-                    ):
-                        if param_name in client_params:
-                            client_param = client_params[param_name]
-                            if client_param.dtype != torch.float32:
-                                client_param = client_param.float()
-                            weighted_sum += weight * client_param
+                # 恢复原始数据类型
+                if param_tensor.dtype != torch.float32:
+                    weighted_sum = weighted_sum.to(param_tensor.dtype)
 
-                    # 恢复原始数据类型
-                    if param_tensor.dtype != torch.float32:
-                        weighted_sum = weighted_sum.to(param_tensor.dtype)
-
-                    global_params[param_name] = weighted_sum
-                else:
-                    # 如果客户端参数中没有这个参数（如BatchNorm的running stats），保持当前值
-                    global_params[param_name] = current_param.clone()
+                global_params[param_name] = weighted_sum
 
             # 更新全局模型
             self.global_model.load_state_dict(global_params)

@@ -47,9 +47,6 @@ users = {
     "client1": {"password": "1", "role": "client"},
     "client2": {"password": "1", "role": "client"},
     "client3": {"password": "1", "role": "client"},
-    # 测试用户
-    "test_user": {"password": "password", "role": "client"},
-    "integration_test": {"password": "test123", "role": "client"},
 }
 
 # 存储客户端文件上传状态和数据路径
@@ -245,32 +242,25 @@ def get_logs_list(log_queue):
     logs = []
     temp_logs = []
 
-    # 处理不同类型的日志容器
-    if isinstance(log_queue, queue.Queue):
-        # 取出所有日志
-        while not log_queue.empty():
-            try:
-                log = log_queue.get_nowait()
-                temp_logs.append(log)
-            except queue.Empty:
-                break
+    # 取出所有日志
+    while not log_queue.empty():
+        try:
+            log = log_queue.get_nowait()
+            temp_logs.append(log)
+        except queue.Empty:
+            break
 
-        # 保留最新的100条日志
-        recent_logs = temp_logs[-100:] if len(temp_logs) > 100 else temp_logs
+    # 保留最新的100条日志
+    recent_logs = temp_logs[-100:] if len(temp_logs) > 100 else temp_logs
 
-        # 重新放回队列
-        for log in recent_logs:
-            try:
-                log_queue.put_nowait(log)
-            except queue.Full:
-                break
+    # 重新放回队列
+    for log in recent_logs:
+        try:
+            log_queue.put_nowait(log)
+        except queue.Full:
+            break
 
-        return recent_logs
-    elif isinstance(log_queue, list):
-        # 如果是列表，直接返回最新的100条
-        return log_queue[-100:] if len(log_queue) > 100 else log_queue
-    else:
-        return []
+    return recent_logs
 
 
 # WebSocket 事件处理
@@ -386,7 +376,6 @@ def handle_logs_request(data):
 
 
 @app.route("/", methods=["GET", "POST"])
-@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
@@ -429,43 +418,6 @@ def logout():
     session.pop("username", None)
     session.pop("role", None)
     return redirect(url_for("login"))
-
-
-@app.route("/inference", methods=["GET"])
-def inference_page():
-    """推理页面"""
-    if "username" not in session:
-        return redirect(url_for("login"))
-
-    # 根据用户角色返回不同页面或显示推理功能
-    if session["role"] == "server":
-        # 对于服务器用户，显示服务器推理页面
-        return render_template("server_dashboard.html", show_inference=True)
-    else:
-        # 对于客户端用户，显示客户端推理页面
-        username = session["username"]
-        status = client_data_status.get(
-            username, {"uploaded": False, "data_path": None}
-        )
-        return render_template(
-            "client_dashboard.html",
-            username=username,
-            status=status,
-            show_inference=True,
-        )
-
-
-@app.route("/inference/upload", methods=["POST"])
-def inference_upload():
-    """推理文件上传"""
-    if "username" not in session:
-        return jsonify({"error": "未授权"}), 403
-
-    # 根据用户角色调用不同的上传API
-    if session["role"] == "server":
-        return upload_inference_file()
-    else:
-        return client_upload_inference_file()
 
 
 @app.route("/client/dashboard", methods=["GET"])

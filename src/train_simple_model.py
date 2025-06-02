@@ -275,26 +275,10 @@ class DiceLoss(nn.Module):
         # 将预测转换为概率
         pred = F.softmax(pred, dim=1)
 
-        # 检查target的维度，如果已经是one-hot编码则不需要转换
-        if target.dim() == 5 and target.shape[1] == pred.shape[1]:
-            # target已经是one-hot编码格式
-            target_one_hot = target.float()
-        else:
-            # target是类别索引，需要转换为one-hot编码
-            # 期望target的形状为 (batch, height, width, depth)
-            if target.dim() == 5:
-                # 如果是5维，取第一个通道作为类别索引
-                target = target[:, 0, :, :, :]
-
-            # 确保target是LongTensor类型用于one-hot编码
-            if target.dtype != torch.long:
-                target = target.long()
-
-            target_one_hot = (
-                F.one_hot(target, num_classes=pred.shape[1])
-                .permute(0, 4, 1, 2, 3)
-                .float()
-            )
+        # 将target转换为one-hot编码
+        target_one_hot = (
+            F.one_hot(target, num_classes=pred.shape[1]).permute(0, 4, 1, 2, 3).float()
+        )
 
         # 计算Dice系数
         intersection = torch.sum(pred * target_one_hot, dim=(2, 3, 4))
@@ -310,15 +294,14 @@ class DiceLoss(nn.Module):
 
 def create_mock_dataset(patch_size=(64, 64, 64), num_samples=10):
     """创建模拟数据集用于演示"""
-
     class MockDataset(Dataset):
         def __init__(self, patch_size, num_samples):
             self.patch_size = patch_size
             self.num_samples = num_samples
-
+            
         def __len__(self):
             return self.num_samples
-
+            
         def __getitem__(self, idx):
             # 创建随机的CT图像patch
             image = torch.randn(1, *self.patch_size) * 0.1
@@ -327,22 +310,18 @@ def create_mock_dataset(patch_size=(64, 64, 64), num_samples=10):
             mask[0] = 1.0  # 背景
             # 随机添加一些前景
             if torch.rand(1) > 0.5:
-                center = [s // 2 for s in self.patch_size]
+                center = [s//2 for s in self.patch_size]
                 size = 8
-                mask[
-                    1,
-                    center[0] - size : center[0] + size,
-                    center[1] - size : center[1] + size,
-                    center[2] - size : center[2] + size,
-                ] = 1.0
-                mask[
-                    0,
-                    center[0] - size : center[0] + size,
-                    center[1] - size : center[1] + size,
-                    center[2] - size : center[2] + size,
-                ] = 0.0
+                mask[1, 
+                     center[0]-size:center[0]+size,
+                     center[1]-size:center[1]+size,
+                     center[2]-size:center[2]+size] = 1.0
+                mask[0, 
+                     center[0]-size:center[0]+size,
+                     center[1]-size:center[1]+size,
+                     center[2]-size:center[2]+size] = 0.0
             return image, mask
-
+    
     return MockDataset(patch_size, num_samples)
 
 
@@ -353,7 +332,7 @@ def train_simple_model(data_dir="./LUNA16", save_path="best_lung_nodule_model.pt
 
     # 数据路径
     csv_path = os.path.join(data_dir, "CSVFILES/annotations.csv")
-
+    
     # 检查数据路径是否存在
     if not os.path.exists(data_dir):
         print(f"警告: 数据目录不存在 {data_dir}")
@@ -369,7 +348,7 @@ def train_simple_model(data_dir="./LUNA16", save_path="best_lung_nodule_model.pt
             subset_folders=["subset0"],  # 只使用subset0
             max_samples=5,  # 很少的样本用于快速测试
             patch_size=(64, 64, 64),
-        )
+    )
 
     print("创建验证数据集...")
     val_dataset = SimpleLUNA16Dataset(
