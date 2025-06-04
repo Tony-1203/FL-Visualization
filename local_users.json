@@ -1,0 +1,16 @@
+{
+  "dummyserver": {
+    "password": "$2b$12$Dl8U.hIIEZYqtTIRfLwkAeJKzrV9Kr2jp0h05wj/YODrzyR/iYyyW",
+    "role": "server",
+    "email": "server@flvisualization.com",
+    "created_at": "2025-06-04T10:24:27.223185",
+    "is_active": true
+  },
+  "dummyclient": {
+    "password": "$2b$12$Dl8U.hIIEZYqtTIRfLwkAeJKzrV9Kr2jp0h05wj/YODrzyR/iYyyW",
+    "role": "client",
+    "email": "client@flvisualization.com",
+    "created_at": "2025-06-04T10:24:27.223185",
+    "is_active": true
+  }
+}

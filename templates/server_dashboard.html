@@ -203,14 +203,14 @@
                         <div class="option-group">
                             <label>
                                 <input type="radio" name="inferenceMode" value="federated" checked>
-                                <span>联邦模型推理</span>
+                                <span>联邦模型推理</span><br>
                                 <small style="color: #718096;">使用训练完成的联邦模型</small>
                             </label>
                         </div>
                         <label>
                             <input type="checkbox" id="fastModeCheckbox">
-                            <span>启用快速推理</span>
-                            <small style="color: #718096;">减少计算时间，可能略微影响精度</small>
+                            <span>启用快速推理</span><br>
+                            <small style="color: #718096;">减少计算时间，可能影响精度或无法识别</small>
                         </label>
                     </div>
                 </div>
@@ -607,7 +607,7 @@
             // 更新活跃客户端数量显示
             const activeClientsElement = document.getElementById('activeClients');
             if (activeClientsElement) {
-                activeClientsElement.textContent = `${clientCount}/${totalClients}`;
+                activeClientsElement.textContent = `${clientCount}`;
             }
         }
 
@@ -1154,8 +1154,8 @@
 
         // 滚动到推理功能区域
         function scrollToInference() {
-            const inferenceSection = document.querySelector('.card h2').parentElement.parentElement;
-            const cards = document.querySelectorAll('.card');
+            const inferenceSection = document.querySelector('.card-infer h2').parentElement.parentElement;
+            const cards = document.querySelectorAll('.card-infer');
             
             // 查找推理功能卡片
             for (let card of cards) {

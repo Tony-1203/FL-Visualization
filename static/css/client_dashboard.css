@@ -12,7 +12,7 @@ body {
     overflow-x: hidden;
 }
 
-/* 背景动画粒子 */
+/* 背景动画粒子 - 优化版本 */
 .background-particles {
     position: fixed;
     top: 0;
@@ -21,6 +21,7 @@ body {
     height: 100%;
     z-index: 1;
     pointer-events: none;
+    overflow: hidden; /* 防止粒子溢出导致滚动条 */
 }
 
 .particle {
@@ -29,12 +30,13 @@ body {
     height: 3px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    animation: float 12s infinite ease-in-out;
+    animation: float 15s infinite ease-in-out;
+    will-change: transform, opacity; /* 优化动画性能 */
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-    50% { transform: translateY(-30px) rotate(180deg); opacity: 0.8; }
+    0%, 100% { transform: translateY(0); opacity: 0.3; }
+    50% { transform: translateY(-20px); opacity: 0.7; }
 }
 
 .header {

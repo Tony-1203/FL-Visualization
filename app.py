@@ -1,5 +1,14 @@
 import os
-from flask import Flask, request, render_template, redirect, url_for, session, jsonify
+from flask import (
+    Flask,
+    request,
+    render_template,
+    redirect,
+    url_for,
+    session,
+    jsonify,
+    flash,
+)
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 import shutil
 import threading
@@ -10,6 +19,43 @@ import io
 import sys
 import builtins
 import base64
+import bcrypt
+import json
+import logging
+
+# Supabase集成
+try:
+    from supabase import create_client, Client
+    from dotenv import load_dotenv
+
+    SUPABASE_AVAILABLE = True
+
+    # 加载环境变量
+    load_dotenv()
+
+    # Supabase配置
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+    # 初始化Supabase客户端
+    supabase: Client = None
+    if SUPABASE_URL and SUPABASE_KEY:
+        try:
+            supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+            print("✅ Supabase连接成功")
+        except Exception as e:
+            print(f"⚠️ Supabase连接失败: {e}")
+            print("🔄 将使用本地存储作为备用")
+            SUPABASE_AVAILABLE = False
+    else:
+        print("⚠️ 未找到Supabase配置，使用本地存储")
+        SUPABASE_AVAILABLE = False
+
+except ImportError as e:
+    print(f"⚠️ Supabase库未安装: {e}")
+    print("🔄 将使用本地存储")
+    SUPABASE_AVAILABLE = False
+    supabase = None
 
 # 从您现有的脚本导入训练函数
 # 确保 src 目录在 Python 路径中，或者调整导入方式
@@ -41,13 +87,173 @@ CLIENT_INFERENCE_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "client_inference")
 if not os.path.exists(CLIENT_INFERENCE_UPLOAD_FOLDER):
     os.makedirs(CLIENT_INFERENCE_UPLOAD_FOLDER)
 
-# 模拟用户数据库
-users = {
-    "server": {"password": "1", "role": "server"},
-    "client1": {"password": "1", "role": "client"},
-    "client2": {"password": "1", "role": "client"},
-    "client3": {"password": "1", "role": "client"},
+# 本地用户备用存储
+LOCAL_USERS_FILE = os.path.join(os.path.dirname(__file__), "local_users.json")
+
+DEFAULT_USERS = {
 }
+
+
+def hash_password(password: str) -> str:
+    """使用bcrypt哈希密码"""
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_password(password: str, hashed: str) -> bool:
+    """验证密码"""
+    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+
+
+def load_local_users():
+    """从本地JSON文件加载用户数据"""
+    try:
+        if os.path.exists(LOCAL_USERS_FILE):
+            with open(LOCAL_USERS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        else:
+            # 如果文件不存在，创建默认用户并保存
+            hashed_users = {}
+            for username, data in DEFAULT_USERS.items():
+                hashed_users[username] = {
+                    "password": hash_password(data["password"]),
+                    "role": data["role"],
+                    "email": data["email"],
+                    "created_at": datetime.now().isoformat(),
+                    "is_active": True,
+                }
+            save_local_users(hashed_users)
+            return hashed_users
+    except Exception as e:
+        print(f"❌ 加载本地用户数据失败: {e}")
+        return {}
+
+
+def save_local_users(users_data):
+    """保存用户数据到本地JSON文件"""
+    try:
+        with open(LOCAL_USERS_FILE, "w", encoding="utf-8") as f:
+            json.dump(users_data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"❌ 保存本地用户数据失败: {e}")
+
+
+def get_user_from_supabase(username: str):
+    """从Supabase获取用户信息"""
+    if not SUPABASE_AVAILABLE or not supabase:
+        return None
+
+    try:
+        response = (
+            supabase.table("users").select("*").eq("username", username).execute()
+        )
+        if response.data and len(response.data) > 0:
+            return response.data[0]
+        return None
+    except Exception as e:
+        print(f"❌ 从Supabase获取用户失败: {e}")
+        return None
+
+
+def authenticate_user(username: str, password: str):
+    """认证用户 - 优先使用Supabase，失败时使用本地存储"""
+
+    # 首先尝试Supabase认证
+    if SUPABASE_AVAILABLE and supabase:
+        try:
+            user_data = get_user_from_supabase(username)
+            if user_data:
+                # 验证密码
+                if verify_password(password, user_data["password_hash"]):
+                    # 更新最后登录时间
+                    try:
+                        supabase.table("users").update(
+                            {"last_login": datetime.now().isoformat()}
+                        ).eq("username", username).execute()
+                    except:
+                        pass  # 忽略更新错误
+
+                    return {
+                        "username": user_data["username"],
+                        "role": user_data.get("role", "client"),  # 从数据库获取角色
+                        "email": user_data.get("email", ""),
+                        "source": "supabase",
+                    }
+                else:
+                    print(f"🔐 Supabase密码验证失败: {username}")
+
+        except Exception as e:
+            print(f"⚠️ Supabase认证失败，尝试本地存储: {e}")
+
+    # 备用：使用本地存储认证
+    try:
+        local_users = load_local_users()
+        if username in local_users:
+            user_data = local_users[username]
+            if verify_password(password, user_data["password"]):
+                return {
+                    "username": username,
+                    "role": user_data["role"],
+                    "email": user_data.get("email", ""),
+                    "source": "local",
+                }
+
+    except Exception as e:
+        print(f"❌ 本地认证失败: {e}")
+
+    return None
+
+
+def create_user_in_supabase(
+    username: str, email: str, password: str, role: str = "client"
+):
+    """在Supabase中创建用户"""
+    if not SUPABASE_AVAILABLE or not supabase:
+        return False
+
+    try:
+        hashed_password = hash_password(password)
+        data = {
+            "username": username,
+            "email": email,
+            "password_hash": hashed_password,
+            "role": role,
+            "created_at": datetime.now().isoformat(),
+            "is_active": True,
+        }
+
+        response = supabase.table("users").insert(data).execute()
+        return response.data is not None
+
+    except Exception as e:
+        print(f"❌ 在Supabase创建用户失败: {e}")
+        return False
+
+
+def initialize_default_users():
+    """初始化默认用户到Supabase"""
+    if not SUPABASE_AVAILABLE or not supabase:
+        print("📝 Supabase不可用，跳过初始化")
+        return
+
+    try:
+        for username, data in DEFAULT_USERS.items():
+            # 检查用户是否已存在
+            existing = get_user_from_supabase(username)
+            if not existing:
+                success = create_user_in_supabase(
+                    username, data["email"], data["password"], data["role"]
+                )
+                if success:
+                    print(f"✅ 已创建默认用户: {username}")
+                else:
+                    print(f"❌ 创建默认用户失败: {username}")
+
+    except Exception as e:
+        print(f"❌ 初始化默认用户失败: {e}")
+
+
+# 模拟用户数据库 - 现在主要用作角色映射的备用
+users = DEFAULT_USERS
 
 # 存储客户端文件上传状态和数据路径
 # 这个变量将在initialize_client_data_status()函数中初始化
@@ -380,11 +586,21 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        if username in users and users[username]["password"] == password:
+
+        # 使用supabase认证
+        auth_result = authenticate_user(username, password)
+
+        if auth_result:
             session["username"] = username
-            session["role"] = users[username]["role"]
-            add_server_log(f"用户 {username} ({users[username]['role']}) 登录成功")
-            if users[username]["role"] == "server":
+            session["role"] = auth_result["role"]
+            session["email"] = auth_result.get("email", "")
+            session["auth_source"] = auth_result["source"]
+
+            add_server_log(
+                f"用户 {username} ({auth_result['role']}) 登录成功 [来源: {auth_result['source']}]"
+            )
+
+            if auth_result["role"] == "server":
                 return redirect(url_for("server_dashboard"))
             else:
                 # 初始化客户端数据状态（如果尚不存在）
@@ -399,6 +615,7 @@ def login():
                         "last_login"
                     ] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 return redirect(url_for("client_dashboard"))
+
         add_server_log(f"用户 {username} 登录失败 - 无效凭据")
         # 对于AJAX请求，返回错误信息
         if (
@@ -418,6 +635,83 @@ def logout():
     session.pop("username", None)
     session.pop("role", None)
     return redirect(url_for("login"))
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        # 基本验证
+        if not username or not email or not password:
+            flash("所有字段都是必填的", "error")
+            return render_template("register.html")
+
+        if len(username) < 3:
+            flash("用户名至少需要3个字符", "error")
+            return render_template("register.html")
+
+        if len(password) < 6:
+            flash("密码至少需要6个字符", "error")
+            return render_template("register.html")
+
+        if password != confirm_password:
+            flash("密码不匹配", "error")
+            return render_template("register.html")
+
+        # 检查用户是否已存在
+        if SUPABASE_AVAILABLE and supabase:
+            existing_user = get_user_from_supabase(username)
+            if existing_user:
+                flash("用户名已存在", "error")
+                return render_template("register.html")
+        else:
+            # 检查本地用户
+            local_users = load_local_users()
+            if username in local_users:
+                flash("用户名已存在", "error")
+                return render_template("register.html")
+
+        # 创建用户
+        success = False
+
+        # 优先尝试Supabase
+        if SUPABASE_AVAILABLE and supabase:
+            success = create_user_in_supabase(
+                username, email, password, "client"
+            )  # 新注册用户默认为客户端
+            if success:
+                add_server_log(f"新用户 {username} 注册成功 [Supabase]")
+                flash("注册成功！请登录", "success")
+            else:
+                flash("注册失败，请稍后重试", "error")
+
+        # 备用：本地存储
+        if not success:
+            try:
+                local_users = load_local_users()
+                local_users[username] = {
+                    "password": hash_password(password),
+                    "role": "client",  # 新注册用户默认为客户端
+                    "email": email,
+                    "created_at": datetime.now().isoformat(),
+                    "is_active": True,
+                }
+                save_local_users(local_users)
+                add_server_log(f"新用户 {username} 注册成功 [本地存储]")
+                flash("注册成功！请登录", "success")
+                success = True
+            except Exception as e:
+                print(f"❌ 本地注册失败: {e}")
+                flash("注册失败，请稍后重试", "error")
+
+        if success:
+            return redirect(url_for("login"))
+
+    return render_template("register.html")
 
 
 @app.route("/client/dashboard", methods=["GET"])
@@ -490,7 +784,8 @@ def upload_file():
     all_files = os.listdir(client_upload_path)
     total_mhd = len([f for f in all_files if f.lower().endswith(".mhd")])
     total_raw = len([f for f in all_files if f.lower().endswith(".raw")])
-    total_files = len(all_files)
+    # 只计算有效的医学影像文件（.mhd和.raw）
+    total_files = total_mhd + total_raw
 
     # 更新客户端状态
     client_data_status[username] = {
@@ -534,31 +829,95 @@ def server_dashboard():
     if "username" not in session or session["role"] != "server":
         return redirect(url_for("login"))
 
-    # 这里我们假设所有定义在users字典中的客户端都是潜在的客户端
+    # 获取所有客户端用户信息
     active_clients_info = []
-    for uname, uinfo in users.items():
-        if uinfo["role"] == "client":
-            status = client_data_status.get(
-                uname,
-                {
-                    "uploaded": False,
-                    "data_path": None,
-                    "last_login": "从未登录",
-                    "upload_time": "从未上传",
-                    "file_count": 0,
-                },
-            )
-            active_clients_info.append(
-                {
-                    "username": uname,
-                    "logged_in": True,  # 简化：假设如果存在于users就可能登录
-                    "file_uploaded": status["uploaded"],
-                    "last_login": status.get("last_login", "从未登录"),
-                    "upload_time": status.get("upload_time", "从未上传"),
-                    "file_count": status.get("file_count", 0),
-                    "data_path": status.get("data_path", "无"),
-                }
-            )
+
+    # 优先从Supabase获取用户列表
+    if SUPABASE_AVAILABLE and supabase:
+        try:
+            response = supabase.table("users").select("*").execute()
+            if response.data:
+                for user_data in response.data:
+                    if user_data["username"] != "server":  # 排除服务器用户
+                        status = client_data_status.get(
+                            user_data["username"],
+                            {
+                                "uploaded": False,
+                                "data_path": None,
+                                "last_login": "从未登录",
+                                "upload_time": "从未上传",
+                                "file_count": 0,
+                            },
+                        )
+                        active_clients_info.append(
+                            {
+                                "username": user_data["username"],
+                                "logged_in": True,  # 简化：假设如果存在于数据库就可能登录
+                                "file_uploaded": status["uploaded"],
+                                "last_login": status.get("last_login", "从未登录"),
+                                "upload_time": status.get("upload_time", "从未上传"),
+                                "file_count": status.get("file_count", 0),
+                                "data_path": status.get("data_path", "无"),
+                            }
+                        )
+        except Exception as e:
+            print(f"⚠️ 从Supabase获取用户列表失败: {e}")
+
+    # 备用：从本地用户数据获取
+    if not active_clients_info:  # 如果Supabase获取失败，使用本地数据
+        try:
+            local_users = load_local_users()
+            for uname, uinfo in local_users.items():
+                if uinfo.get("role") == "client":
+                    status = client_data_status.get(
+                        uname,
+                        {
+                            "uploaded": False,
+                            "data_path": None,
+                            "last_login": "从未登录",
+                            "upload_time": "从未上传",
+                            "file_count": 0,
+                        },
+                    )
+                    active_clients_info.append(
+                        {
+                            "username": uname,
+                            "logged_in": True,  # 简化：假设如果存在于本地用户就可能登录
+                            "file_uploaded": status["uploaded"],
+                            "last_login": status.get("last_login", "从未登录"),
+                            "upload_time": status.get("upload_time", "从未上传"),
+                            "file_count": status.get("file_count", 0),
+                            "data_path": status.get("data_path", "无"),
+                        }
+                    )
+        except Exception as e:
+            print(f"❌ 从本地获取用户列表失败: {e}")
+
+    # 最后的备用：使用默认用户（只有在前面都失败时）
+    if not active_clients_info:
+        for uname, uinfo in DEFAULT_USERS.items():
+            if uinfo["role"] == "client":
+                status = client_data_status.get(
+                    uname,
+                    {
+                        "uploaded": False,
+                        "data_path": None,
+                        "last_login": "从未登录",
+                        "upload_time": "从未上传",
+                        "file_count": 0,
+                    },
+                )
+                active_clients_info.append(
+                    {
+                        "username": uname,
+                        "logged_in": True,  # 简化：假设如果存在于默认用户就可能登录
+                        "file_uploaded": status["uploaded"],
+                        "last_login": status.get("last_login", "从未登录"),
+                        "upload_time": status.get("upload_time", "从未上传"),
+                        "file_count": status.get("file_count", 0),
+                        "data_path": status.get("data_path", "无"),
+                    }
+                )
 
     return render_template(
         "server_dashboard.html",
@@ -1445,4 +1804,4 @@ if __name__ == "__main__":
     add_server_log("等待客户端连接和上传数据")
 
     # 使用 SocketIO 运行应用
-    socketio.run(app, debug=True, port=5002, host="0.0.0.0")
+    socketio.run(app, port=5000)
