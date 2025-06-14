@@ -62,7 +62,7 @@ function updateConnectionStatus(isConnected) {
 
 // 更新用户状态
 function updateUserStatus(data) {
-    document.getElementById('onlineCount').textContent = data.total_online;
+    document.getElementById('onlineCount').textContent = data.total_online/2;
     document.getElementById('serverStatus').textContent = 
         data.online_servers.length > 0 ? '在线' : '离线';
     document.getElementById('lastUpdate').textContent = 

@@ -90,8 +90,7 @@ if not os.path.exists(CLIENT_INFERENCE_UPLOAD_FOLDER):
 # 本地用户备用存储
 LOCAL_USERS_FILE = os.path.join(os.path.dirname(__file__), "local_users.json")
 
-DEFAULT_USERS = {
-}
+DEFAULT_USERS = {}
 
 
 def hash_password(password: str) -> str:
@@ -272,6 +271,7 @@ training_status = {
 
 # 设置全局变量，让训练函数能够访问
 builtins.app_training_status = training_status
+builtins.socketio = socketio
 
 # 全局推理状态
 inference_status = {
@@ -578,6 +578,92 @@ def handle_logs_request(data):
             "logs": logs,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         },
+    )
+
+
+# WebSocket handlers for training data
+@socketio.on("join_training_room")
+def handle_join_training_room(data):
+    """客户端加入训练监控房间"""
+    if "username" not in session:
+        return
+
+    username = session["username"]
+    role = session["role"]
+    client_id = data.get("client_id", username)
+
+    print(f"用户 {username} (角色: {role}) 加入训练监控房间，客户端ID: {client_id}")
+
+    # 加入对应的训练监控房间
+    if role == "client":
+        # 客户端加入特定的训练监控房间
+        join_room(f"client_{client_id}_training")
+        join_room("server_training")  # 也加入服务器房间接收总体数据
+    elif role == "server":
+        join_room("server_training")
+
+    emit(
+        "training_room_joined",
+        {"status": "success", "room": f"{role}_training", "client_id": client_id},
+    )
+
+
+@socketio.on("request_training_data")
+def handle_training_data_request(data):
+    """处理训练数据请求"""
+    if "username" not in session:
+        return
+
+    username = session["username"]
+    role = session["role"]
+    client_id = data.get("client_id", username)
+
+    # 返回请求的训练数据（这里可以从存储中获取历史数据）
+    emit(
+        "training_data_response",
+        {
+            "client_id": client_id,
+            "data": [],  # 这里可以添加历史数据获取逻辑
+            "timestamp": datetime.now().isoformat(),
+        },
+    )
+
+
+# REST API endpoints for training data
+@app.route("/api/training/client/<client_id>/data", methods=["GET"])
+def get_client_training_data(client_id):
+    """获取特定客户端的训练数据"""
+    if "username" not in session or session["role"] not in ["server", "client"]:
+        return jsonify({"error": "未授权"}), 401
+
+    # 如果是客户端，只能访问自己的数据
+    if session["role"] == "client" and session["username"] != client_id:
+        return jsonify({"error": "权限不足"}), 403
+
+    # 这里可以从数据库或文件系统获取训练数据
+    # 目前返回空数据，实际实现时可以添加数据持久化
+    return jsonify(
+        {
+            "client_id": client_id,
+            "training_data": [],
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
+
+
+@app.route("/api/training/server/data", methods=["GET"])
+def get_server_training_data():
+    """获取服务器端训练数据"""
+    if "username" not in session or session["role"] != "server":
+        return jsonify({"error": "未授权"}), 401
+
+    # 返回服务器端聚合训练数据
+    return jsonify(
+        {
+            "server_data": [],
+            "all_clients_data": {},
+            "timestamp": datetime.now().isoformat(),
+        }
     )
 
 

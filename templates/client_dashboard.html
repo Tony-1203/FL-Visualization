@@ -6,7 +6,9 @@
     <title>联邦学习客户端 - 数据上传</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/client_dashboard.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/client_training_chart.css') }}" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- 背景动画粒子 -->
@@ -113,6 +115,9 @@
             </div>
         </div>
 
+        <!-- 训练损失实时监控 -->
+        <div id="clientTrainingChart"></div>
+
         <!-- 推理功能 -->
         <div class="dashboard-card">
             <div class="card-header">
@@ -196,6 +201,11 @@
         </div>
     </div>
 
+    <script>
+        // 将用户名传递给JavaScript
+        window.currentUsername = "{{ username }}";
+    </script>
     <script src="{{ url_for('static', filename='js/client_dashboard_ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/client_training_chart.js') }}"></script>
 </body>
 </html>

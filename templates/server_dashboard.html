@@ -6,7 +6,9 @@
     <title>联邦学习服务器仪表盘</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/server_dashboard.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/server_training_chart.css') }}" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -105,6 +107,8 @@
             </div>
         </div>
 
+        
+
         <!-- 服务器日志 -->
         <div class="card-clients">
             <div class="card-header">
@@ -127,6 +131,55 @@
             </div>
         </div>
 
+
+        <!-- 实时训练损失监控 -->
+        <div class="card training-visualization">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i>
+                <h2>实时训练损失监控</h2>
+                <div class="chart-controls">
+                    <button id="exportServerDataBtn" class="btn-export" onclick="exportServerTrainingData()">
+                        <i class="fas fa-download"></i>导出数据
+                    </button>
+                    <button id="resetServerChartsBtn" class="btn-reset" onclick="resetServerCharts()">
+                        <i class="fas fa-refresh"></i>重置图表
+                    </button>
+                </div>
+            </div>
+            
+            <div class="training-charts-container">
+                <!-- 服务器聚合损失图表 -->
+                <div class="chart-section">
+                    <h3><i class="fas fa-server"></i>服务器聚合损失</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="serverAggregatedChart"></canvas>
+                    </div>
+                    <div class="chart-metrics">
+                        <div class="metric-card">
+                            <span class="metric-label">当前轮次</span>
+                            <span class="metric-value" id="serverCurrentRound">-</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">平均损失</span>
+                            <span class="metric-value" id="serverAverageLoss">-</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">参与客户端</span>
+                            <span class="metric-value" id="serverActiveClients">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 训练状态指示器 -->
+            <div class="training-status-indicator">
+                <div id="serverTrainingStatus" class="status-badge status-waiting">
+                    <i class="fas fa-clock"></i>等待训练开始
+                </div>
+            </div>
+        </div>
+
+        
         <!-- 客户端状态 -->
         <div class="card-clients">
             <div class="card-header">
@@ -1182,5 +1235,8 @@
             }
         });
     </script>
+    
+    <!-- 服务器训练可视化 -->
+    <script src="{{ url_for('static', filename='js/server_training_chart.js') }}"></script>
 </body>
 </html>

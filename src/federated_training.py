@@ -29,6 +29,7 @@ import random
 from collections import OrderedDict
 from datetime import datetime
 import sys  # 添加sys导入
+import json  # 添加JSON支持用于WebSocket消息
 
 
 # 日志函数 - 尝试从app.py导入，失败则创建本地版本
@@ -64,6 +65,67 @@ def add_training_log(message):
     # 如果导入失败，直接打印
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[TRAINING {timestamp}] {message}")
+
+
+def broadcast_training_data(client_id, data_type, data):
+    """
+    广播训练数据到WebSocket客户端
+
+    Args:
+        client_id: 客户端ID
+        data_type: 数据类型 ('training_start', 'training_progress', 'training_complete', 'round_complete')
+        data: 要发送的数据
+    """
+    try:
+        import builtins
+
+        if hasattr(builtins, "socketio"):
+            socketio = builtins.socketio
+            message = {
+                "type": data_type,
+                "client_id": client_id,
+                "timestamp": datetime.now().isoformat(),
+                **data,
+            }
+
+            # 发送到特定客户端房间
+            socketio.emit(
+                f"client_{client_id}_training_update",
+                message,
+                room=f"client_{client_id}_training",
+            )
+
+            # 发送到服务器仪表盘（所有客户端的数据聚合）
+            socketio.emit("server_training_update", message, room="server_training")
+
+            print(f"✅ WebSocket广播成功: 客户端{client_id} - {data_type}")
+    except Exception as e:
+        print(f"❌ WebSocket广播失败: {e}")
+
+
+def broadcast_server_training_data(data_type, data):
+    """
+    广播服务器端训练数据
+
+    Args:
+        data_type: 数据类型
+        data: 要发送的数据
+    """
+    try:
+        import builtins
+
+        if hasattr(builtins, "socketio"):
+            socketio = builtins.socketio
+            message = {
+                "type": data_type,
+                "timestamp": datetime.now().isoformat(),
+                **data,
+            }
+
+            socketio.emit("server_training_update", message, room="server_training")
+            print(f"✅ 服务器WebSocket广播成功: {data_type}")
+    except Exception as e:
+        print(f"❌ 服务器WebSocket广播失败: {e}")
 
 
 # 导入简化的模型和数据集
@@ -105,7 +167,7 @@ class FederatedServer:
         self.round_num = 0
 
         # 存储训练历史
-        self.training_history = {"rounds": [], "avg_loss": [], "client_losses": []}
+        self.training_history = {"rounds": [], "average_loss": [], "client_losses": []}
 
     def get_global_model_params(self):
         """获取全局模型参数"""
@@ -303,6 +365,17 @@ class FederatedClient:
             f"客户端{self.client_id}开始本地训练: {epochs}轮, 数据量: {len(train_loader.dataset)}"
         )
 
+        # 广播训练开始消息
+        broadcast_training_data(
+            self.client_id,
+            "training_start",
+            {
+                "round": getattr(self, "current_round", 1),
+                "epochs": epochs,
+                "data_size": len(train_loader.dataset),
+            },
+        )
+
         self.model.train()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         criterion = DiceLoss()  # 使用原始训练的DiceLoss
@@ -332,9 +405,26 @@ class FederatedClient:
                     total_loss += loss.item()
                     num_batches += 1
 
-                    if batch_idx % 10 == 0:  # 减少打印频率
+                    # 实时广播训练进度（每10个批次）
+                    if batch_idx % 10 == 0:
                         print(
                             f"  客户端 {self.client_id} - Epoch {epoch+1}/{epochs}, Batch {batch_idx+1}, Loss: {loss.item():.4f}"
+                        )
+
+                        # 广播实时损失
+                        broadcast_training_data(
+                            self.client_id,
+                            "training_progress",
+                            {
+                                "epoch": epoch + 1,
+                                "batch": batch_idx + 1,
+                                "loss": loss.item(),
+                                "average_loss": (
+                                    total_loss / (batch_idx + 1)
+                                    if batch_idx > 0
+                                    else loss.item()
+                                ),
+                            },
                         )
 
                 except Exception as e:
@@ -355,8 +445,31 @@ class FederatedClient:
                 f"  客户端 {self.client_id} - Epoch {epoch+1} 平均损失: {avg_loss:.4f}"
             )
 
+            # 广播每个epoch完成的消息
+            broadcast_training_data(
+                self.client_id,
+                "training_progress",
+                {
+                    "epoch": epoch + 1,
+                    "loss": avg_loss,
+                    "total_epochs": epochs,
+                    "epoch_complete": True,
+                },
+            )
+
         add_training_log(
             f"客户端{self.client_id}本地训练完成 - 总轮数: {epochs}, 最终平均损失: {np.mean(epoch_losses) if epoch_losses else 0.0:.4f}"
+        )
+
+        # 广播训练完成消息
+        broadcast_training_data(
+            self.client_id,
+            "training_complete",
+            {
+                "final_loss": np.mean(epoch_losses) if epoch_losses else 0.0,
+                "loss_history": epoch_losses,
+                "total_epochs": epochs,
+            },
         )
 
         self.training_history.extend(epoch_losses)
@@ -665,6 +778,9 @@ class FederatedLearningCoordinator:
 
                 print(f"客户端 {i} 开始本地训练...")
 
+                # 设置当前轮次信息
+                client.current_round = round_num + 1
+
                 # 本地训练
                 client.local_epochs = local_epochs
                 epoch_losses = client.local_train(train_loader, local_epochs)
@@ -677,6 +793,17 @@ class FederatedLearningCoordinator:
                 client_weights.append(client_weight)
 
                 print(f"客户端 {i} 本地训练完成，数据量: {client_weight}")
+
+                # 广播客户端轮次完成消息
+                broadcast_training_data(
+                    i,
+                    "round_complete",
+                    {
+                        "round": round_num + 1,
+                        "average_loss": np.mean(epoch_losses) if epoch_losses else 0.0,
+                        "data_size": client_weight,
+                    },
+                )
 
             # 3. 服务器执行模型聚合
             if client_params_list:
@@ -696,7 +823,7 @@ class FederatedLearningCoordinator:
                     avg_client_loss = np.mean(client_losses) if client_losses else 0.0
 
                     self.server.training_history["rounds"].append(round_num + 1)
-                    self.server.training_history["avg_loss"].append(avg_client_loss)
+                    self.server.training_history["average_loss"].append(avg_client_loss)
 
                     add_server_log(
                         f"第{round_num + 1}轮总结 - 平均客户端损失: {avg_client_loss:.4f}, 参与客户端: {len(client_params_list)}"
@@ -704,12 +831,34 @@ class FederatedLearningCoordinator:
 
                     print(f"第 {round_num + 1} 轮平均客户端损失: {avg_client_loss:.4f}")
 
+                    # 广播服务器端轮次完成消息
+                    broadcast_server_training_data(
+                        "round_complete",
+                        {
+                            "round": round_num + 1,
+                            "total_rounds": global_rounds,
+                            "average_loss": avg_client_loss,
+                            "participating_clients": len(client_params_list),
+                            "client_losses": [
+                                (
+                                    np.mean(client.training_history[-local_epochs:])
+                                    if client.training_history
+                                    else 0.0
+                                )
+                                for client in self.clients
+                                if client.training_history
+                            ],
+                        },
+                    )
+
                     # 4. 评估全局模型（可选，可能跳过以避免错误）
                     if test_loader is not None:
                         try:
                             print(f"评估第 {round_num + 1} 轮全局模型...")
                             global_loss = self.server.evaluate_global_model(test_loader)
-                            self.server.training_history["avg_loss"][-1] = global_loss
+                            self.server.training_history["average_loss"][
+                                -1
+                            ] = global_loss
                             print(f"全局模型评估损失: {global_loss:.4f}")
                         except Exception as e:
                             print(f"全局模型评估失败: {e}")
@@ -759,7 +908,9 @@ class FederatedLearningCoordinator:
 
             # 损失曲线
             plt.subplot(1, 2, 1)
-            plt.plot(history["rounds"], history["avg_loss"], "b-o", label="平均损失")
+            plt.plot(
+                history["rounds"], history["average_loss"], "b-o", label="平均损失"
+            )
             plt.xlabel("全局训练轮次")
             plt.ylabel("损失")
             plt.title("联邦学习训练损失")

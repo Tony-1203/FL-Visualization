@@ -1,6 +1,6 @@
 {
   "dummyserver": {
-    "password": "$2b$12$Dl8U.hIIEZYqtTIRfLwkAeJKzrV9Kr2jp0h05wj/YODrzyR/iYyyW",
+    "password": "$2b$12$LbwUFKIrr0X7EBNCWM5O6O7y2GMUj.isPH1/9fP.wpUnFl.BErGuu",
     "role": "server",
     "email": "server@flvisualization.com",
     "created_at": "2025-06-04T10:24:27.223185",
@@ -11,6 +11,27 @@
     "role": "client",
     "email": "client@flvisualization.com",
     "created_at": "2025-06-04T10:24:27.223185",
+    "is_active": true
+  },
+  "TonyClient": {
+    "password": "$2b$12$9umn6SbhXixrfHPzv2buR.wLbrJQpAOR5hXKu.nM1OeKEAkdoDrGi",
+    "role": "client",
+    "email": "tonyclient@flvisualization.com",
+    "created_at": "2025-06-14T10:00:00",
+    "is_active": true
+  },
+  "Tony": {
+    "password": "$2b$12$9umn6SbhXixrfHPzv2buR.wLbrJQpAOR5hXKu.nM1OeKEAkdoDrGi",
+    "role": "client",
+    "email": "tony@flvisualization.com",
+    "created_at": "2025-06-14T10:00:00",
+    "is_active": true
+  },
+  "Tony2": {
+    "password": "$2b$12$9umn6SbhXixrfHPzv2buR.wLbrJQpAOR5hXKu.nM1OeKEAkdoDrGi",
+    "role": "client",
+    "email": "tony2@flvisualization.com",
+    "created_at": "2025-06-14T10:00:00",
     "is_active": true
   }
 }
