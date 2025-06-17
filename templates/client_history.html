@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联邦学习训练历史 - 客户端</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/client_dashboard.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/history.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- 背景动画粒子 -->
+    <div class="background-particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 4.5s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 1.5s;"></div>
+    </div>
+
+    <div class="history-container client-history-container">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1><i class="fas fa-history"></i> 我的训练历史</h1>
+            <p>查看您参与的所有联邦学习训练会话</p>
+        </div>
+
+        <!-- 导航栏 -->
+        <div class="navigation-bar">
+            <div class="nav-links">
+                <a href="{{ url_for('client_dashboard') }}" class="nav-link">
+                    <i class="fas fa-cloud-upload-alt"></i> 主界面
+                </a>
+                <a href="{{ url_for('client_history') }}" class="nav-link active">
+                    <i class="fas fa-history"></i> 训练历史
+                </a>
+            </div>
+            <div>
+                <!-- <span style="margin-right: 15px; color: #4a5568;">
+                    <i class="fas fa-user"></i> {{ username }}
+                </span> -->
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> 登出
+                </a>
+            </div>
+        </div>
+
+        {% if training_history %}
+        <!-- 客户端统计信息 -->
+        <div class="client-stats">
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-handshake"></i></div>
+                <div class="number">{{ training_history|length }}</div>
+                <div class="label">参与训练</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-check-circle"></i></div>
+                <div class="number">{{ training_history|selectattr('status', 'equalto', 'completed')|list|length }}</div>
+                <div class="label">成功完成</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-clock"></i></div>
+                <div class="number">
+                    {% set total_duration = training_history|sum(attribute='duration')|default(0) %}
+                    {{ "%.1f"|format(total_duration / 3600) }}h
+                </div>
+                <div class="label">总参与时间</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-database"></i></div>
+                <div class="number">{{ total_data_count }}</div>
+                <div class="label">贡献数据量</div>
+            </div>
+        </div>
+
+        <!-- 训练历史列表 -->
+        <div class="history-table">
+            <div class="table-header">
+                <h2><i class="fas fa-list"></i> 参与的训练会话</h2>
+            </div>
+            <div class="sessions-list">
+                {% for session in training_history %}
+                <div class="session-item">
+                    <div class="session-header">
+                        <div class="session-id">
+                            <i class="fas fa-cog"></i> 会话 #{{ session.session_id }}
+                        </div>
+                        <div class="session-status {% if session.status == 'completed' %}status-completed{% elif session.status == 'failed' %}status-failed{% else %}status-running{% endif %}">
+                            {{ session.status|title }}
+                        </div>
+                    </div>
+
+                    <div class="session-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>开始时间: {{ session.start_time[:19]|replace('T', ' ') }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>持续时间: {{ "%.1f"|format(session.duration / 60) }} 分钟</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-repeat"></i>
+                            <span>训练轮次: {{ session.global_rounds }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-users"></i>
+                            <span>参与客户端: {{ session.participants|length }}</span>
+                        </div>
+                        {% if session.final_loss %}
+                        <div class="detail-item">
+                            <i class="fas fa-chart-line"></i>
+                            <span>最终损失: {{ "%.4f"|format(session.final_loss) }}</span>
+                        </div>
+                        {% endif %}
+                        {% if client_username in session.client_data %}
+                        <div class="detail-item">
+                            <i class="fas fa-database"></i>
+                            <span>我的数据量: {{ session.client_data[client_username].data_count }} 个文件</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 客户端参与情况 -->
+                    <div class="client-participation">
+                        <strong style="color: #667eea;"><i class="fas fa-info-circle"></i> 我的参与情况:</strong>
+                        {% if client_username in session.client_data %}
+                        <div style="margin-top: 10px;">
+                            <p style="margin: 5px 0;"><strong>数据上传时间:</strong> {{ session.client_data[client_username].upload_time[:19]|replace('T', ' ') }}</p>
+                            <p style="margin: 5px 0;"><strong>贡献数据量:</strong> {{ session.client_data[client_username].data_count }} 个文件</p>
+                            <p style="margin: 5px 0;"><strong>数据路径:</strong> {{ session.client_data[client_username].data_path }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
+                        <button class="expand-btn" onclick="toggleSessionDetails({{ session.session_id }})">
+                            <i class="fas fa-chevron-down"></i> 查看详情
+                        </button>
+                        {% if session.model_path and session.status == 'completed' %}
+                        <button class="download-model-btn" onclick="downloadModel({{ session.session_id }})" title="下载参与训练的模型">
+                            <i class="fas fa-download"></i> 下载模型
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- 展开的详细信息 -->
+                    <div class="session-expanded" id="session-{{ session.session_id }}">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                            <div>
+                                <h4><i class="fas fa-cogs"></i> 训练参数</h4>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li><strong>全局轮次:</strong> {{ session.global_rounds }}</li>
+                                    <li><strong>本地轮次:</strong> {{ session.local_epochs }}</li>
+                                    <li><strong>学习率:</strong> {{ session.learning_rate }}</li>
+                                    <li><strong>批次大小:</strong> {{ session.batch_size }}</li>
+                                    <!-- {% if session.convergence_round %}
+                                    <li><strong>收敛轮次:</strong> {{ session.convergence_round }}</li>
+                                    {% endif %} -->
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h4><i class="fas fa-users"></i> 所有参与者</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    {% for participant in session.participants %}
+                                    <span class="participant-tag {% if participant == client_username %}current-client{% endif %}">
+                                        {{ participant }}{% if participant == client_username %} (我){% endif %}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if session.loss_data %}
+                        <div class="loss-chart-container">
+                            <h4><i class="fas fa-chart-line"></i> 损失变化曲线</h4>
+                            <canvas id="lossChart-{{ session.session_id }}"></canvas>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% else %}
+        <!-- 无历史记录 -->
+        <div class="history-table">
+            <div class="no-history">
+                <i class="fas fa-history"></i>
+                <h3>暂无训练历史</h3>
+                <p>您还没有参与过任何联邦学习训练。上传您的数据开始参与训练吧！</p>
+                <a href="{{ url_for('client_dashboard') }}" class="expand-btn" style="display: inline-block; margin-top: 20px; text-decoration: none;">
+                    <i class="fas fa-cloud-upload-alt"></i> 上传数据
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleSessionDetails(sessionId) {
+            const expandedDiv = document.getElementById(`session-${sessionId}`);
+            const isVisible = expandedDiv.style.display === 'block';
+            
+            if (isVisible) {
+                expandedDiv.style.display = 'none';
+            } else {
+                expandedDiv.style.display = 'block';
+                
+                // 渲染损失图表
+                renderLossChart(sessionId);
+            }
+        }
+
+        function renderLossChart(sessionId) {
+            // 获取训练会话数据
+            fetch(`/api/training/history/${sessionId}`)
+                .then(response => response.json())
+                .then(sessionData => {
+                    console.log('Session data:', sessionData); // 调试用
+                    if (sessionData.loss_data && sessionData.loss_data.average_loss) {
+                        const ctx = document.getElementById(`lossChart-${sessionId}`);
+                        if (ctx) {
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: sessionData.loss_data.rounds,
+                                    datasets: [{
+                                        label: '训练损失',
+                                        data: sessionData.loss_data.average_loss,
+                                        borderColor: '#667eea',
+                                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                        borderWidth: 3,
+                                        fill: true,
+                                        tension: 0.4,
+                                        pointBackgroundColor: '#667eea',
+                                        pointBorderColor: '#ffffff',
+                                        pointBorderWidth: 2,
+                                        pointRadius: 6
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            display: true,
+                                            position: 'top'
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            title: {
+                                                display: true,
+                                                text: '训练轮次',
+                                                font: {
+                                                    size: 14,
+                                                    weight: 'bold'
+                                                }
+                                            },
+                                            grid: {
+                                                color: 'rgba(0,0,0,0.1)'
+                                            }
+                                        },
+                                        y: {
+                                            title: {
+                                                display: true,
+                                                text: '损失值',
+                                                font: {
+                                                    size: 14,
+                                                    weight: 'bold'
+                                                }
+                                            },
+                                            grid: {
+                                                color: 'rgba(0,0,0,0.1)'
+                                            }
+                                        }
+                                    },
+                                    animation: {
+                                        duration: 1000,
+                                        easing: 'easeInOutQuart'
+                                    }
+                                }
+                            });
+                        }
+                    } else {
+                        console.log('No loss data found for session:', sessionId);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading session data:', error);
+                });
+        }
+
+        function downloadModel(sessionId) {
+            // 创建一个临时的下载链接
+            const downloadUrl = `/download/model/${sessionId}`;
+            
+            // 显示下载提示
+            const button = event.target.closest('.download-model-btn');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 下载中...';
+            button.disabled = true;
+            
+            // 创建临时链接进行下载
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `federated_model_session_${sessionId}.pth`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 恢复按钮状态
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+            
+            console.log(`开始下载会话 ${sessionId} 的模型文件`);
+        }
+    </script>
+</body>
+</html>

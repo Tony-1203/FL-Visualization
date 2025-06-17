@@ -8,6 +8,7 @@ from flask import (
     session,
     jsonify,
     flash,
+    send_file,
 )
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 import shutil
@@ -1879,6 +1880,199 @@ def client_delete_inference_file():
         response_message += f" (部分错误: {', '.join(errors)})"
 
     return jsonify({"message": response_message, "deleted_files": deleted_files})
+
+
+@app.route("/download/model/<int:session_id>", methods=["GET"])
+def download_model(session_id):
+    """下载指定训练会话的模型文件"""
+    if "username" not in session:
+        return jsonify({"error": "未登录"}), 401
+
+    try:
+        # 查找训练会话
+        history_file = os.path.join(os.path.dirname(__file__), "training_history.json")
+
+        if not os.path.exists(history_file):
+            return jsonify({"error": "训练历史文件不存在"}), 404
+
+        with open(history_file, "r", encoding="utf-8") as f:
+            training_history = json.load(f)
+
+        # 查找指定的会话
+        session_data = None
+        for training_session in training_history:
+            if training_session.get("session_id") == session_id:
+                session_data = training_session
+                break
+
+        if not session_data:
+            return jsonify({"error": "训练会话未找到"}), 404
+
+        # 检查权限：服务器可以下载所有模型，客户端只能下载参与的训练模型
+        user_role = session.get("role", "client")
+        username = session.get("username")
+
+        if user_role == "client":
+            # 检查客户端是否参与了这个训练
+            if username not in session_data.get("participants", []):
+                return jsonify({"error": "您没有权限下载此模型"}), 403
+
+        # 获取模型文件路径
+        model_path = session_data.get(
+            "model_path", f"models/session_{session_id}_federated_model.pth"
+        )
+        full_model_path = os.path.join(os.path.dirname(__file__), model_path)
+
+        # 检查文件是否存在
+        if not os.path.exists(full_model_path):
+            # 尝试寻找其他可能的路径
+            alternative_paths = [
+                f"models/session_{session_id}_federated_model.pth",
+                "best_federated_lung_nodule_model.pth",
+                f"session_{session_id}_federated_model.pth",
+            ]
+
+            found = False
+            for alt_path in alternative_paths:
+                alt_full_path = os.path.join(os.path.dirname(__file__), alt_path)
+                if os.path.exists(alt_full_path):
+                    full_model_path = alt_full_path
+                    model_path = alt_path
+                    found = True
+                    break
+
+            if not found:
+                return jsonify({"error": "模型文件不存在"}), 404
+
+        # 生成下载文件名
+        download_filename = f"federated_model_session_{session_id}.pth"
+
+        # 记录下载日志
+        add_server_log(
+            f"用户 {username} ({user_role}) 下载会话 {session_id} 的模型文件"
+        )
+
+        return send_file(
+            full_model_path,
+            as_attachment=True,
+            download_name=download_filename,
+            mimetype="application/octet-stream",
+        )
+
+    except Exception as e:
+        app.logger.error(f"Error downloading model for session {session_id}: {e}")
+        return jsonify({"error": "下载模型失败"}), 500
+
+
+# 在其他路由之前添加历史页面路由
+
+
+@app.route("/server/history", methods=["GET"])
+def server_history():
+    """服务器训练历史页面"""
+    if "username" not in session or session.get("role") != "server":
+        return redirect(url_for("login"))
+
+    try:
+        # 读取训练历史数据
+        history_file = os.path.join(os.path.dirname(__file__), "training_history.json")
+        training_history = []
+
+        if os.path.exists(history_file):
+            with open(history_file, "r", encoding="utf-8") as f:
+                training_history = json.load(f)
+                # 按时间倒序排列，最新的在前面
+                training_history = sorted(
+                    training_history,
+                    key=lambda x: x.get("start_time", ""),
+                    reverse=True,
+                )
+
+        return render_template(
+            "server_history.html",
+            username=session["username"],
+            training_history=training_history,
+        )
+    except Exception as e:
+        app.logger.error(f"Error loading training history: {e}")
+        return render_template(
+            "server_history.html", username=session["username"], training_history=[]
+        )
+
+
+@app.route("/client/history", methods=["GET"])
+def client_history():
+    """客户端训练历史页面"""
+    if "username" not in session or session.get("role") != "client":
+        return redirect(url_for("login"))
+
+    try:
+        # 读取训练历史数据
+        history_file = os.path.join(os.path.dirname(__file__), "training_history.json")
+        training_history = []
+        client_username = session["username"]
+
+        if os.path.exists(history_file):
+            with open(history_file, "r", encoding="utf-8") as f:
+                all_history = json.load(f)
+                # 筛选出该客户端参与的训练
+                for session_data in all_history:
+                    if client_username in session_data.get("participants", []):
+                        training_history.append(session_data)
+
+                # 按时间倒序排列
+                training_history = sorted(
+                    training_history,
+                    key=lambda x: x.get("start_time", ""),
+                    reverse=True,
+                )
+
+        # 计算统计数据
+        total_data_count = 0
+        for session_data in training_history:
+            client_data = session_data.get("client_data", {}).get(client_username, {})
+            total_data_count += client_data.get("data_count", 0)
+
+        return render_template(
+            "client_history.html",
+            username=session["username"],
+            training_history=training_history,
+            client_username=client_username,
+            total_data_count=total_data_count,
+        )
+    except Exception as e:
+        app.logger.error(f"Error loading client training history: {e}")
+        return render_template(
+            "client_history.html",
+            username=session["username"],
+            training_history=[],
+            client_username=client_username,
+            total_data_count=0,
+        )
+
+
+@app.route("/api/training/history/<int:session_id>", methods=["GET"])
+def get_training_session_detail(session_id):
+    """获取特定训练会话的详细信息"""
+    if "username" not in session:
+        return jsonify({"error": "未登录"}), 401
+
+    try:
+        history_file = os.path.join(os.path.dirname(__file__), "training_history.json")
+
+        if os.path.exists(history_file):
+            with open(history_file, "r", encoding="utf-8") as f:
+                training_history = json.load(f)
+
+                # 查找指定的会话
+                for session_data in training_history:
+                    if session_data.get("session_id") == session_id:
+                        return jsonify(session_data)
+
+        return jsonify({"error": "训练会话未找到"}), 404
+    except Exception as e:
+        app.logger.error(f"Error getting training session detail: {e}")
+        return jsonify({"error": "获取训练详情失败"}), 500
 
 
 # 在应用启动时初始化客户端数据状态

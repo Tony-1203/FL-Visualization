@@ -1,0 +1,212 @@
+[
+  {
+    "session_id": 1,
+    "start_time": "2025-06-17T01:47:37.187114",
+    "status": "completed",
+    "global_rounds": 5,
+    "total_rounds": 5,
+    "local_epochs": 2,
+    "participants": [
+      "TonyClient"
+    ],
+    "client_data": {
+      "TonyClient": {
+        "data_path": "/Users/tony/Desktop/Tony/College/大二下/软件工程/FL-Visualization/uploads/TonyClient_data",
+        "data_count": 1,
+        "upload_time": "2025-06-17 01:47:37"
+      }
+    },
+    "learning_rate": 0.001,
+    "batch_size": 32,
+    "training_logs": [],
+    "loss_data": {
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "average_loss": [
+        0.6768642067909241,
+        0.6427662074565887,
+        0.638531357049942,
+        0.6372232139110565,
+        0.6175727546215057
+      ],
+      "client_losses": [
+        [
+          0.6768642067909241
+        ],
+        [
+          0.6427662074565887
+        ],
+        [
+          0.638531357049942
+        ],
+        [
+          0.6372232139110565
+        ],
+        [
+          0.6175727546215057
+        ]
+      ]
+    },
+    "training_images": [
+      {
+        "url": "/static/training_images/session_1.png",
+        "title": "联邦训练损失图表",
+        "type": "loss_chart"
+      }
+    ],
+    "created_at": "2025-06-17T01:47:37.187119",
+    "updated_at": "2025-06-17T01:48:29.458267",
+    "end_time": "2025-06-17T01:48:29.090831",
+    "duration": 51.903965,
+    "final_loss": 0.6175727546215057,
+    "best_loss": 0.6175727546215057,
+    "model_path": "models/session_1_federated_model.pth",
+    "convergence_round": 5,
+    "avg_round_time": 10.380793
+  },
+  {
+    "session_id": 2,
+    "start_time": "2025-06-17T02:20:57.854421",
+    "status": "completed",
+    "global_rounds": 5,
+    "total_rounds": 5,
+    "local_epochs": 2,
+    "participants": [
+      "TonyClient"
+    ],
+    "client_data": {
+      "TonyClient": {
+        "data_path": "/Users/tony/Desktop/Tony/College/大二下/软件工程/FL-Visualization/uploads/TonyClient_data",
+        "data_count": 1,
+        "upload_time": "2025-06-17 02:20:57"
+      }
+    },
+    "learning_rate": 0.001,
+    "batch_size": 32,
+    "training_logs": [],
+    "loss_data": {
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "average_loss": [
+        0.6720792949199677,
+        0.6478712558746338,
+        0.631855309009552,
+        0.6141380667686462,
+        0.5984372198581696
+      ],
+      "client_losses": [
+        [
+          0.6720792949199677
+        ],
+        [
+          0.6478712558746338
+        ],
+        [
+          0.631855309009552
+        ],
+        [
+          0.6141380667686462
+        ],
+        [
+          0.5984372198581696
+        ]
+      ]
+    },
+    "training_images": [
+      {
+        "url": "/static/training_images/session_2.png",
+        "title": "联邦训练损失图表",
+        "type": "loss_chart"
+      }
+    ],
+    "created_at": "2025-06-17T02:20:57.854427",
+    "updated_at": "2025-06-17T02:21:41.986563",
+    "end_time": "2025-06-17T02:21:41.747283",
+    "duration": 43.740614,
+    "final_loss": 0.5984372198581696,
+    "best_loss": 0.5984372198581696,
+    "model_path": "models/session_2_federated_model.pth",
+    "convergence_round": 5,
+    "avg_round_time": 8.7481228
+  },
+  {
+    "session_id": 3,
+    "start_time": "2025-06-17T02:39:42.667498",
+    "status": "completed",
+    "global_rounds": 5,
+    "total_rounds": 5,
+    "local_epochs": 2,
+    "participants": [
+      "TonyClient"
+    ],
+    "client_data": {
+      "TonyClient": {
+        "data_path": "/Users/tony/Desktop/Tony/College/大二下/软件工程/FL-Visualization/uploads/TonyClient_data",
+        "data_count": 1,
+        "upload_time": "2025-06-17 02:39:42"
+      }
+    },
+    "learning_rate": 0.001,
+    "batch_size": 32,
+    "training_logs": [],
+    "loss_data": {
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "average_loss": [
+        0.7372198700904846,
+        0.6916539669036865,
+        0.676433652639389,
+        0.6670622229576111,
+        0.6591933369636536
+      ],
+      "client_losses": [
+        [
+          0.7372198700904846
+        ],
+        [
+          0.6916539669036865
+        ],
+        [
+          0.676433652639389
+        ],
+        [
+          0.6670622229576111
+        ],
+        [
+          0.6591933369636536
+        ]
+      ]
+    },
+    "training_images": [
+      {
+        "url": "/static/training_images/session_3.png",
+        "title": "联邦训练损失图表",
+        "type": "loss_chart"
+      }
+    ],
+    "created_at": "2025-06-17T02:39:42.667504",
+    "updated_at": "2025-06-17T02:40:27.244473",
+    "end_time": "2025-06-17T02:40:26.877926",
+    "duration": 44.173767,
+    "final_loss": 0.6591933369636536,
+    "best_loss": 0.6591933369636536,
+    "model_path": "models/session_3_federated_model.pth",
+    "convergence_round": 5,
+    "avg_round_time": 8.8347534
+  }
+]

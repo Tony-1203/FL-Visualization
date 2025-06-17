@@ -40,6 +40,10 @@
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
                 <span>欢迎, {{ username }}!</span>
+                <a href="{{ url_for('client_history') }}" class="history-btn">
+                    <i class="fas fa-history"></i>
+                    训练历史
+                </a>
                 <a href="{{ url_for('logout') }}" class="logout-btn">
                     <i class="fas fa-sign-out-alt"></i>
                     登出

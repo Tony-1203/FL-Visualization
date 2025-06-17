@@ -102,6 +102,25 @@ body {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
+.history-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.history-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
 .container {
     max-width: 1000px;
     margin: 40px auto;

@@ -33,10 +33,16 @@ body {
     color: #667eea;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .logout-btn {
     background: linear-gradient(45deg, #ff6b6b, #ee5a24);
     color: white;
-    padding: 10px 20px;
+    padding: 12px 24px;
     text-decoration: none;
     border-radius: 25px;
     transition: all 0.3s ease;
@@ -76,13 +82,15 @@ body {
 
 .card-infer {
     background: rgba(255, 255, 255, 0.95);
-    max-width: 50rem;
+    max-width: none;
+    min-height: 600px;
     backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 2rem;
     box-shadow: 0 8px 32px rgba(0,0,0,0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: transform 0.3s ease;
+    grid-column: 1 / -1;
 }
 
 .card-infer:hover {
@@ -374,6 +382,9 @@ tr:hover {
 /* 推理功能样式 */
 .inference-section {
     margin-top: 1.5rem;
+    min-height: 500px; /* 为推理区域设置最小高度 */
+    display: flex;
+    flex-direction: column;
     transition: all 0.5s ease-in-out;
 }
 
@@ -382,9 +393,10 @@ tr:hover {
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
     margin: 1.5rem 0;
+    min-height: 200px; /* 增加控制区域高度 */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     border-radius: 15px;
-    padding: 1.5rem;
+    padding: 2rem; /* 增加内边距 */
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(10px);
 }
@@ -653,6 +665,25 @@ tr:hover {
     background: #fed7d7;
     color: #822727;
 }
+/* 训练历史按钮 */
+.history-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.history-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+}
 
 /* 训练参数控制样式 */
 .training-parameters {
@@ -787,11 +818,12 @@ tr:hover {
 .inference-status {
     background: rgba(255, 255, 255, 0.8);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 1.5rem; /* 增加内边距 */
     margin: 1rem 0;
+    min-height: 80px; /* 设置最小高度 */
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 1rem; /* 增加间距 */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
     border: 1px solid #e2e8f0;
@@ -858,8 +890,9 @@ tr:hover {
 .inference-result {
     background: rgba(255, 255, 255, 0.9);
     border-radius: 15px;
-    padding: 1.5rem;
+    padding: 2rem; /* 增加内边距 */
     margin-top: 1.5rem;
+    min-height: 200px; /* 设置最小高度 */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     transition: all 0.5s ease;
     border: 1px solid rgba(102, 126, 234, 0.3);
@@ -916,10 +949,11 @@ tr:hover {
     background: rgba(255, 255, 255, 0.8);
     max-width: 100%;
     border-radius: 12px;
-    padding: 1rem;
+    padding: 1.5rem; /* 增加内边距 */
     margin: 1.5rem 0;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-    max-height: 300px;
+    min-height: 200px; /* 设置最小高度 */
+    max-height: 400px; /* 增加最大高度 */
     overflow-y: auto;
     border: 1px solid #e2e8f0;
     scrollbar-width: thin;

@@ -13,9 +13,14 @@
 <body>
     <div class="header">
         <h1><i class="fas fa-server"></i>联邦学习服务器控制台</h1>
-        <a href="{{ url_for('logout') }}" class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i>登出
-        </a>
+        <div class="header-actions">
+            <a href="{{ url_for('server_history') }}" class="history-btn">
+                <i class="fas fa-history"></i>训练历史
+            </a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>登出
+            </a>
+        </div>
     </div>
 
     <div class="container">
@@ -162,10 +167,6 @@
                         <div class="metric-card">
                             <span class="metric-label">平均损失</span>
                             <span class="metric-value" id="serverAverageLoss">-</span>
-                        </div>
-                        <div class="metric-card">
-                            <span class="metric-label">参与客户端</span>
-                            <span class="metric-value" id="serverActiveClients">-</span>
                         </div>
                     </div>
                 </div>
@@ -661,6 +662,10 @@
             const activeClientsElement = document.getElementById('activeClients');
             if (activeClientsElement) {
                 activeClientsElement.textContent = `${clientCount}`;
+            }
+            const clientCountElements = document.querySelectorAll('.client-count');
+            if (clientCountElements) {
+                clientCountElements.textContent = `${clientCount}`;
             }
         }
 

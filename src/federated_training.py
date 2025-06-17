@@ -32,6 +32,155 @@ import sys  # 添加sys导入
 import json  # 添加JSON支持用于WebSocket消息
 
 
+# 训练历史数据管理函数
+def load_training_history():
+    """加载现有的训练历史数据"""
+    history_file = "training_history.json"
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"加载训练历史失败: {e}")
+            return []
+    return []
+
+
+def save_training_history(history_data):
+    """保存训练历史数据到JSON文件"""
+    history_file = "./training_history.json"
+    try:
+        with open(history_file, "w", encoding="utf-8") as f:
+            json.dump(history_data, f, indent=2, ensure_ascii=False)
+        print(f"训练历史已保存到: {history_file}")
+    except Exception as e:
+        print(f"保存训练历史失败: {e}")
+
+
+def create_training_session(
+    participants, learning_rate, batch_size, global_rounds, local_epochs
+):
+    """创建新的训练会话记录"""
+    # 加载现有历史
+    history = load_training_history()
+
+    # 生成新的session_id
+    session_id = 1
+    if history:
+        session_id = max([session.get("session_id", 0) for session in history]) + 1
+
+    # 创建新的训练会话
+    new_session = {
+        "session_id": session_id,
+        "start_time": datetime.now().isoformat(),
+        "status": "running",
+        "global_rounds": global_rounds,
+        "total_rounds": global_rounds,
+        "local_epochs": local_epochs,
+        "participants": participants,
+        "client_data": {},
+        "learning_rate": learning_rate,
+        "batch_size": batch_size,
+        "training_logs": [],
+        "loss_data": {"rounds": [], "average_loss": [], "client_losses": []},
+        "training_images": [],
+        "created_at": datetime.now().isoformat(),
+    }
+
+    # 添加到历史记录
+    history.append(new_session)
+    save_training_history(history)
+
+    print(f"创建新的训练会话: session_id={session_id}")
+    return session_id
+
+
+def update_training_session(session_id, **updates):
+    """更新训练会话的信息"""
+    history = load_training_history()
+
+    # 查找对应的会话
+    for session in history:
+        if session.get("session_id") == session_id:
+            # 更新会话信息
+            session.update(updates)
+            session["updated_at"] = datetime.now().isoformat()
+            break
+
+    save_training_history(history)
+
+
+def add_client_data_info(
+    session_id, client_id, data_path, data_count, upload_time=None
+):
+    """添加客户端数据信息"""
+    if upload_time is None:
+        upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    client_data = {
+        "data_path": data_path,
+        "data_count": data_count,
+        "upload_time": upload_time,
+    }
+
+    history = load_training_history()
+    for session in history:
+        if session.get("session_id") == session_id:
+            if "client_data" not in session:
+                session["client_data"] = {}
+            session["client_data"][client_id] = client_data
+            session["updated_at"] = datetime.now().isoformat()
+            break
+
+    save_training_history(history)
+    print(f"添加客户端数据信息: {client_id} -> {data_count} 个文件")
+
+
+def add_round_result(session_id, round_num, average_loss, client_losses=None):
+    """添加训练轮次结果"""
+    if client_losses is None:
+        client_losses = []
+
+    history = load_training_history()
+    for session in history:
+        if session.get("session_id") == session_id:
+            session["loss_data"]["rounds"].append(round_num)
+            session["loss_data"]["average_loss"].append(average_loss)
+            session["loss_data"]["client_losses"].append(client_losses)
+            session["updated_at"] = datetime.now().isoformat()
+            break
+
+    save_training_history(history)
+    print(f"记录第{round_num}轮训练结果: 平均损失={average_loss:.4f}")
+
+
+def complete_training_session(
+    session_id, final_loss, best_loss, model_path, duration, convergence_round=None
+):
+    """完成训练会话"""
+    history = load_training_history()
+    for session in history:
+        if session.get("session_id") == session_id:
+            session.update(
+                {
+                    "status": "completed",
+                    "end_time": datetime.now().isoformat(),
+                    "duration": duration,
+                    "final_loss": final_loss,
+                    "best_loss": best_loss,
+                    "model_path": model_path,
+                    "convergence_round": convergence_round
+                    or session.get("global_rounds", 1),
+                    "avg_round_time": duration / session.get("global_rounds", 1),
+                    "updated_at": datetime.now().isoformat(),
+                }
+            )
+            break
+
+    save_training_history(history)
+    print(f"训练会话完成: session_id={session_id}, 最终损失={final_loss:.4f}")
+
+
 # 日志函数 - 尝试从app.py导入，失败则创建本地版本
 def add_server_log(message):
     """添加服务器日志"""
@@ -691,7 +840,12 @@ class FederatedLearningCoordinator:
         return client_loaders
 
     def federated_training(
-        self, train_loaders, test_loader=None, global_rounds=5, local_epochs=3
+        self,
+        train_loaders,
+        test_loader=None,
+        global_rounds=5,
+        local_epochs=3,
+        client_data_dirs=None,
     ):
         """
         执行联邦学习训练
@@ -701,6 +855,7 @@ class FederatedLearningCoordinator:
             test_loader: 测试数据加载器
             global_rounds: 全局训练轮数
             local_epochs: 本地训练轮数
+            client_data_dirs: 客户端数据目录列表，用于记录数据路径
         """
 
         print(f"开始联邦学习训练 - {global_rounds} 轮全局训练")
@@ -708,6 +863,46 @@ class FederatedLearningCoordinator:
         add_server_log(
             f"联邦学习训练开始 - {global_rounds}轮全局训练, {local_epochs}轮本地训练, {len(train_loaders)}个客户端"
         )
+
+        # 记录训练开始时间
+        training_start_time = datetime.now()
+
+        # 准备参与客户端列表
+        participants = []
+        for i, train_loader in enumerate(train_loaders):
+            if len(train_loader.dataset) > 0:
+                client_name = f"client{i}" if i < 10 else f"client{i}"
+                # 检查是否有自定义客户端名称
+                if (
+                    client_data_dirs
+                    and i < len(client_data_dirs)
+                    and client_data_dirs[i]
+                ):
+                    client_name = os.path.basename(client_data_dirs[i]).replace(
+                        "_data", ""
+                    )
+                participants.append(client_name)
+
+        # 创建新的训练会话
+        session_id = create_training_session(
+            participants=participants,
+            learning_rate=0.001,  # 从FederatedClient默认值获取
+            batch_size=32,  # 通常的批次大小
+            global_rounds=global_rounds,
+            local_epochs=local_epochs,
+        )
+
+        # 记录客户端数据信息
+        for i, (train_loader, client_name) in enumerate(
+            zip(train_loaders, participants)
+        ):
+            data_count = len(train_loader.dataset)
+            data_path = (
+                client_data_dirs[i]
+                if client_data_dirs and i < len(client_data_dirs)
+                else f"uploads/{client_name}_data"
+            )
+            add_client_data_info(session_id, client_name, data_path, data_count)
 
         # 尝试获取Flask应用中的全局训练状态
         global_training_status = None
@@ -732,6 +927,10 @@ class FederatedLearningCoordinator:
         except Exception as e:
             print(f"无法连接到Flask训练状态: {e}")
             pass
+
+        # 存储每轮的损失数据
+        all_round_losses = []
+        best_loss = float("inf")
 
         for round_num in range(global_rounds):
             import sys  # 确保sys在作用域内可用
@@ -766,6 +965,7 @@ class FederatedLearningCoordinator:
             # 2. 各客户端执行本地训练
             client_params_list = []
             client_weights = []
+            round_client_losses = []
 
             print(f"开始第 {round_num + 1} 轮客户端本地训练...")
 
@@ -792,7 +992,13 @@ class FederatedLearningCoordinator:
                 client_params_list.append(client_params)
                 client_weights.append(client_weight)
 
-                print(f"客户端 {i} 本地训练完成，数据量: {client_weight}")
+                # 记录客户端损失
+                client_avg_loss = np.mean(epoch_losses) if epoch_losses else 0.0
+                round_client_losses.append(client_avg_loss)
+
+                print(
+                    f"客户端 {i} 本地训练完成，数据量: {client_weight}, 平均损失: {client_avg_loss:.4f}"
+                )
 
                 # 广播客户端轮次完成消息
                 broadcast_training_data(
@@ -800,7 +1006,7 @@ class FederatedLearningCoordinator:
                     "round_complete",
                     {
                         "round": round_num + 1,
-                        "average_loss": np.mean(epoch_losses) if epoch_losses else 0.0,
+                        "average_loss": client_avg_loss,
                         "data_size": client_weight,
                     },
                 )
@@ -812,18 +1018,24 @@ class FederatedLearningCoordinator:
 
                     self.server.federated_averaging(client_params_list, client_weights)
 
-                    # 记录训练历史
-                    client_losses = []
-                    for client in self.clients:
-                        if client.training_history:
-                            recent_losses = client.training_history[-local_epochs:]
-                            if recent_losses:
-                                client_losses.extend(recent_losses)
+                    # 计算这一轮的平均损失
+                    avg_client_loss = (
+                        np.mean(round_client_losses) if round_client_losses else 0.0
+                    )
+                    all_round_losses.append(avg_client_loss)
 
-                    avg_client_loss = np.mean(client_losses) if client_losses else 0.0
+                    # 更新最佳损失
+                    if avg_client_loss < best_loss:
+                        best_loss = avg_client_loss
 
+                    # 记录到内存中的训练历史
                     self.server.training_history["rounds"].append(round_num + 1)
                     self.server.training_history["average_loss"].append(avg_client_loss)
+
+                    # 实时写入到training_history.json
+                    add_round_result(
+                        session_id, round_num + 1, avg_client_loss, round_client_losses
+                    )
 
                     add_server_log(
                         f"第{round_num + 1}轮总结 - 平均客户端损失: {avg_client_loss:.4f}, 参与客户端: {len(client_params_list)}"
@@ -839,15 +1051,7 @@ class FederatedLearningCoordinator:
                             "total_rounds": global_rounds,
                             "average_loss": avg_client_loss,
                             "participating_clients": len(client_params_list),
-                            "client_losses": [
-                                (
-                                    np.mean(client.training_history[-local_epochs:])
-                                    if client.training_history
-                                    else 0.0
-                                )
-                                for client in self.clients
-                                if client.training_history
-                            ],
+                            "client_losses": round_client_losses,
                         },
                     )
 
@@ -856,9 +1060,17 @@ class FederatedLearningCoordinator:
                         try:
                             print(f"评估第 {round_num + 1} 轮全局模型...")
                             global_loss = self.server.evaluate_global_model(test_loader)
+                            # 如果全局评估成功，使用全局损失更新记录
                             self.server.training_history["average_loss"][
                                 -1
                             ] = global_loss
+                            # 更新JSON文件中的损失
+                            add_round_result(
+                                session_id,
+                                round_num + 1,
+                                global_loss,
+                                round_client_losses,
+                            )
                             print(f"全局模型评估损失: {global_loss:.4f}")
                         except Exception as e:
                             print(f"全局模型评估失败: {e}")
@@ -886,16 +1098,77 @@ class FederatedLearningCoordinator:
                 except Exception as e:
                     print(f"更新最终训练状态失败: {e}")
 
+        # 计算训练总时长
+        training_end_time = datetime.now()
+        total_duration = (training_end_time - training_start_time).total_seconds()
+
+        # 为每个会话保存独立的模型文件
+        session_model_path = f"models/session_{session_id}_federated_model.pth"
+
+        # 确保models目录存在
+        os.makedirs("models", exist_ok=True)
+
+        # 保存会话特定的模型
+        try:
+            torch.save(
+                {
+                    "model_state_dict": self.server.global_model.state_dict(),
+                    "session_id": session_id,
+                    "round_num": global_rounds,
+                    "final_loss": all_round_losses[-1] if all_round_losses else 0.0,
+                    "best_loss": best_loss,
+                    "training_history": self.server.training_history,
+                    "participants": participants,
+                    "training_duration": total_duration,
+                    "model_info": {
+                        "model_class": "Simple3DUNet",
+                        "in_channels": 1,
+                        "out_channels": 2,
+                    },
+                },
+                session_model_path,
+            )
+            print(f"会话 {session_id} 模型已保存到: {session_model_path}")
+        except Exception as e:
+            print(f"保存会话模型失败: {e}")
+            session_model_path = (
+                "best_federated_lung_nodule_model.pth"  # 回退到默认路径
+            )
+
+        # 完成训练会话记录
+        final_loss = all_round_losses[-1] if all_round_losses else 0.0
+        convergence_round = None
+        # 简单的收敛判断：损失变化小于阈值的轮次
+        for i in range(1, len(all_round_losses)):
+            if abs(all_round_losses[i] - all_round_losses[i - 1]) < 0.001:
+                convergence_round = i + 1
+                break
+
+        complete_training_session(
+            session_id=session_id,
+            final_loss=final_loss,
+            best_loss=best_loss,
+            model_path=session_model_path,  # 使用会话特定的模型路径
+            duration=total_duration,
+            convergence_round=convergence_round,
+        )
+
         add_server_log(f"联邦学习训练完成 - 总共完成{global_rounds}轮训练")
 
         print("\n联邦学习训练完成！")
-        return self.server.training_history
+        print(f"训练会话ID: {session_id}")
+        print(f"总时长: {total_duration:.2f} 秒")
+        print(f"最终损失: {final_loss:.4f}")
+        print(f"最佳损失: {best_loss:.4f}")
+
+        # 返回session_id用于后续图表生成
+        return self.server.training_history, session_id
 
     def save_federated_model(self, save_path="federated_luna16_model.pth"):
         """保存联邦学习模型"""
         self.server.save_global_model(save_path)
 
-    def plot_training_history(self):
+    def plot_training_history(self, session_id=None):
         """绘制训练历史"""
         history = self.server.training_history
 
@@ -931,10 +1204,39 @@ class FederatedLearningCoordinator:
 
             plt.tight_layout()
 
-            # 保存图片而不是显示
-            plt.savefig("federated_training_history.png", dpi=150, bbox_inches="tight")
+            # 根据session_id生成唯一的文件名
+            if session_id:
+                image_filename = f"session_{session_id}.png"
+                image_path = f"static/training_images/{image_filename}"
+
+                # 确保目录存在
+                os.makedirs("static/training_images", exist_ok=True)
+
+                # 保存图片
+                plt.savefig(image_path, dpi=150, bbox_inches="tight")
+
+                # 添加图像信息到训练历史
+                training_image = {
+                    "url": f"/static/training_images/{image_filename}",
+                    "title": "联邦训练损失图表",
+                    "type": "loss_chart",
+                }
+
+                # 更新训练历史中的图像信息
+                if session_id:
+                    update_training_session(
+                        session_id, training_images=[training_image]
+                    )
+
+                print(f"训练历史图表已保存到: {image_path}")
+            else:
+                # 保存图片而不是显示
+                plt.savefig(
+                    "federated_training_history.png", dpi=150, bbox_inches="tight"
+                )
+                print("训练历史图表已保存到: federated_training_history.png")
+
             plt.close()  # 关闭图形以释放内存
-            print("训练历史图表已保存到: federated_training_history.png")
         except Exception as e:
             print(f"绘制训练历史时出错: {e}")
             print("跳过图表生成...")
@@ -1011,12 +1313,20 @@ def train_federated_model(
     print("开始执行联邦学习训练...")
     sys.stdout.flush()
 
-    training_history = coordinator.federated_training(
+    training_result = coordinator.federated_training(
         train_loaders=client_loaders,
         test_loader=test_loader,
         global_rounds=global_rounds,
         local_epochs=local_epochs,
+        client_data_dirs=client_data_dirs,
     )
+
+    # 解包返回值
+    if isinstance(training_result, tuple):
+        training_history, session_id = training_result
+    else:
+        training_history = training_result
+        session_id = None
 
     # 保存模型
     print("正在保存训练好的模型...")
@@ -1026,7 +1336,7 @@ def train_federated_model(
     # 绘制训练历史
     print("正在生成训练历史图表...")
     sys.stdout.flush()
-    coordinator.plot_training_history()
+    coordinator.plot_training_history(session_id=session_id)
 
     print(f"\n联邦学习训练完成！")
     print(f"客户端数量: {num_clients}")
@@ -1100,10 +1410,10 @@ def run_federated_training(
     )
 
     # 保存模型
-    if coordinator and coordinator.global_model:
+    if coordinator and coordinator.server and coordinator.server.global_model:
         torch.save(
             {
-                "model_state_dict": coordinator.global_model.state_dict(),
+                "model_state_dict": coordinator.server.global_model.state_dict(),
                 "round_num": global_rounds,
                 "federated_training": True,
             },

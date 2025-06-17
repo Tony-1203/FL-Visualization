@@ -1,28 +1,34 @@
 # Flask web application dependencies
-Flask==2.3.3
+Flask==3.0.3
+flask_socketio==5.5.1
 
 # Data manipulation and analysis
-numpy==1.24.3
-pandas==2.0.3
+numpy==1.26.4
+pandas==2.2.2
 
 # Deep learning framework
-torch==2.0.1
-torchvision==0.15.2
+torch==2.6.0
+torchvision==0.21.0
 
 # Medical image processing
-SimpleITK==2.2.1
+simpleitk==2.5.0    
 
 # Scientific computing
-scipy==1.11.1
+scipy==1.14.0
 
 # Visualization
-matplotlib==3.7.2
+matplotlib==3.9.1
 
 # Progress bars
-tqdm==4.65.0
+tqdm==4.66.2
 
 # gunicorn
-gunicorn
+gunicorn==23.0.0
+
+bcrypt==3.2.0
+
+supabase==2.15.2
+dotenv
 
 # Additional Python standard library modules used:
 # - os (built-in)
