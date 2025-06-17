@@ -67,7 +67,7 @@
                 <div class="icon"><i class="fas fa-clock"></i></div>
                 <div class="number">
                     {% set total_duration = training_history|sum(attribute='duration')|default(0) %}
-                    {{ "%.1f"|format(total_duration / 3600) }}h
+                    {{ "%.2f"|format(total_duration / 3600) }}h
                 </div>
                 <div class="label">总参与时间</div>
             </div>
@@ -196,9 +196,9 @@
                 <i class="fas fa-history"></i>
                 <h3>暂无训练历史</h3>
                 <p>您还没有参与过任何联邦学习训练。上传您的数据开始参与训练吧！</p>
-                <a href="{{ url_for('client_dashboard') }}" class="expand-btn" style="display: inline-block; margin-top: 20px; text-decoration: none;">
+                <!-- <a href="{{ url_for('client_dashboard') }}" class="expand-btn" style="display: inline-block; margin-top: 20px; text-decoration: none;">
                     <i class="fas fa-cloud-upload-alt"></i> 上传数据
-                </a>
+                </a> -->
             </div>
         </div>
         {% endif %}

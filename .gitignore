@@ -65,7 +65,6 @@ tmp/
 *.hdf5
 
 # Environment variables
-.env
 .env.local
 .env.development.local
 .env.test.local
