@@ -1,0 +1,271 @@
+<!DOCTYPE html><html><head>
+      <title>README</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:////Users/tony/.vscode/extensions/shd101wyy.markdown-preview-enhanced-0.8.18/crossnote/dependencies/katex/katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="联邦学习可视化系统---软件工程化说明文档">联邦学习可视化系统 - 软件工程化说明文档 </h1>
+<h2 id="项目概述">项目概述 </h2>
+<p>本项目是一个基于Flask的联邦学习可视化系统，主要用于LUNA16肺结节检测的分布式机器学习。系统采用多种软件工程化手段，实现了自动化、协作化的开发和部署流程。</p>
+<hr>
+<h2 id="1-自动化工程实践">1. 自动化工程实践 </h2>
+<h3 id="11-依赖管理自动化">1.1 依赖管理自动化 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>使用 <code>requirements.txt</code> 统一管理项目依赖</li>
+<li>包含54个明确版本的依赖包</li>
+<li>支持 <code>pip install -r requirements.txt</code> 一键安装</li>
+</ul>
+<p><strong>技术栈：</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>Flask==3.0.3                  # Web框架
+flask_socketio==5.5.1         # 实时通信
+torch==2.6.0                  # 深度学习框架
+numpy==1.26.4                 # 数值计算
+pandas==2.2.2                 # 数据处理
+simpleitk==2.5.0              # 医学图像处理
+supabase==2.15.2              # 云数据库
+</code></pre><h3 id="12-配置管理自动化">1.2 配置管理自动化 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>使用 <code>.env</code> 文件管理环境配置</li>
+<li>自动检测和加载环境变量</li>
+<li>支持本地存储和云存储的自动切换</li>
+</ul>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token comment"># 自动化配置加载</span>
+load_dotenv<span class="token punctuation">(</span><span class="token punctuation">)</span>
+SUPABASE_URL <span class="token operator">=</span> os<span class="token punctuation">.</span>getenv<span class="token punctuation">(</span><span class="token string">"SUPABASE_URL"</span><span class="token punctuation">)</span>
+SUPABASE_KEY <span class="token operator">=</span> os<span class="token punctuation">.</span>getenv<span class="token punctuation">(</span><span class="token string">"SUPABASE_KEY"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 自动降级机制</span>
+<span class="token keyword keyword-if">if</span> SUPABASE_URL <span class="token keyword keyword-and">and</span> SUPABASE_KEY<span class="token punctuation">:</span>
+    supabase <span class="token operator">=</span> create_client<span class="token punctuation">(</span>SUPABASE_URL<span class="token punctuation">,</span> SUPABASE_KEY<span class="token punctuation">)</span>
+<span class="token keyword keyword-else">else</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string">"🔄 将使用本地存储作为备用"</span><span class="token punctuation">)</span>
+    SUPABASE_AVAILABLE <span class="token operator">=</span> <span class="token boolean">False</span>
+</code></pre><h3 id="13-训练流程自动化">1.3 训练流程自动化 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>自动化联邦学习训练流程</li>
+<li>自动模型聚合和分发</li>
+<li>自动生成训练历史和可视化图表</li>
+</ul>
+<p><strong>核心组件：</strong></p>
+<ul>
+<li><code>FederatedServer</code>: 自动处理模型聚合</li>
+<li><code>FederatedClient</code>: 自动执行本地训练</li>
+<li><code>FederatedLearningCoordinator</code>: 协调整个训练流程</li>
+</ul>
+<h3 id="14-数据处理自动化">1.4 数据处理自动化 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>自动医学图像预处理</li>
+<li>自动数据分片和分布</li>
+<li>自动生成训练数据集</li>
+</ul>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token keyword keyword-class">class</span> <span class="token class-name">FederatedLearningCoordinator</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-def">def</span> <span class="token function">distribute_data_automatically</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> data_path<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""自动分发数据到各个客户端"""</span>
+        <span class="token comment"># 自动扫描数据文件</span>
+        <span class="token comment"># 自动分片和分布</span>
+        <span class="token comment"># 自动验证数据完整性</span>
+</code></pre><hr>
+<h2 id="2-协作化工程实践">2. 协作化工程实践 </h2>
+<h3 id="21-模块化架构设计">2.1 模块化架构设计 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>采用MVC架构模式</li>
+<li>明确的代码分层和职责分离</li>
+<li>模块化的组件设计</li>
+</ul>
+<p><strong>目录结构：</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>code/
+├── app.py                    # 主应用入口
+├── src/                      # 核心业务逻辑
+│   ├── federated_training.py # 联邦学习训练
+│   ├── federated_inference.py # 联邦推理
+│   ├── federated_inference_utils.py # 推理工具
+│   └── simple_inference.py   # 简单推理
+├── templates/                # 前端模板
+├── static/                   # 静态资源
+│   ├── css/                  # 样式文件
+│   ├── js/                   # JavaScript文件
+│   └── training_images/      # 训练图像
+└── models/                   # 模型存储
+</code></pre><h3 id="22-实时协作机制">2.2 实时协作机制 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>基于WebSocket的实时通信</li>
+<li>多用户协作界面</li>
+<li>实时状态同步</li>
+</ul>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// 实时协作功能</span>
+<span class="token keyword keyword-function">function</span> <span class="token function">initializeSocket</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    socket <span class="token operator">=</span> <span class="token function">io</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    socket<span class="token punctuation">.</span><span class="token method function property-access">on</span><span class="token punctuation">(</span><span class="token string">'connect'</span><span class="token punctuation">,</span> <span class="token keyword keyword-function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">log</span><span class="token punctuation">(</span><span class="token string">'WebSocket 连接成功'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">updateConnectionStatus</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        socket<span class="token punctuation">.</span><span class="token method function property-access">emit</span><span class="token punctuation">(</span><span class="token string">'request_status_update'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    socket<span class="token punctuation">.</span><span class="token method function property-access">on</span><span class="token punctuation">(</span><span class="token string">'user_status_update'</span><span class="token punctuation">,</span> <span class="token keyword keyword-function">function</span><span class="token punctuation">(</span><span class="token parameter">data</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token function">updateUserStatus</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="23-用户管理和权限控制">2.3 用户管理和权限控制 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>基于角色的访问控制（RBAC）</li>
+<li>客户端和服务端不同权限</li>
+<li>安全的用户认证机制</li>
+</ul>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token comment"># 用户角色管理</span>
+<span class="token decorator annotation punctuation">@app<span class="token punctuation">.</span>route</span><span class="token punctuation">(</span><span class="token string">"/server_dashboard"</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-def">def</span> <span class="token function">server_dashboard</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-if">if</span> <span class="token string">"username"</span> <span class="token keyword keyword-not">not</span> <span class="token keyword keyword-in">in</span> session <span class="token keyword keyword-or">or</span> session<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"role"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token string">"server"</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-return">return</span> redirect<span class="token punctuation">(</span>url_for<span class="token punctuation">(</span><span class="token string">"login"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token comment"># 服务端专用功能</span>
+
+<span class="token decorator annotation punctuation">@app<span class="token punctuation">.</span>route</span><span class="token punctuation">(</span><span class="token string">"/client_dashboard"</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-def">def</span> <span class="token function">client_dashboard</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-if">if</span> <span class="token string">"username"</span> <span class="token keyword keyword-not">not</span> <span class="token keyword keyword-in">in</span> session <span class="token keyword keyword-or">or</span> session<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"role"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token string">"client"</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-return">return</span> redirect<span class="token punctuation">(</span>url_for<span class="token punctuation">(</span><span class="token string">"login"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token comment"># 客户端专用功能</span>
+</code></pre><h3 id="24-数据持久化和共享">2.4 数据持久化和共享 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>JSON格式的结构化数据存储</li>
+<li>训练历史的持久化管理</li>
+<li>多客户端数据共享机制</li>
+</ul>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token keyword keyword-def">def</span> <span class="token function">save_training_history</span><span class="token punctuation">(</span>history_data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""保存训练历史数据到JSON文件"""</span>
+    history_file <span class="token operator">=</span> <span class="token string">"./training_history.json"</span>
+    <span class="token keyword keyword-with">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>history_file<span class="token punctuation">,</span> <span class="token string">"w"</span><span class="token punctuation">,</span> encoding<span class="token operator">=</span><span class="token string">"utf-8"</span><span class="token punctuation">)</span> <span class="token keyword keyword-as">as</span> f<span class="token punctuation">:</span>
+        json<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>history_data<span class="token punctuation">,</span> f<span class="token punctuation">,</span> indent<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">,</span> ensure_ascii<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>
+</code></pre><hr>
+<h2 id="3-质量保证工程实践">3. 质量保证工程实践 </h2>
+<h3 id="31-错误处理和异常管理">3.1 错误处理和异常管理 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>完善的异常处理机制</li>
+<li>自动错误恢复</li>
+<li>详细的错误日志记录</li>
+</ul>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token keyword keyword-try">try</span><span class="token punctuation">:</span>
+    supabase <span class="token operator">=</span> create_client<span class="token punctuation">(</span>SUPABASE_URL<span class="token punctuation">,</span> SUPABASE_KEY<span class="token punctuation">)</span>
+    <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string">"✅ Supabase连接成功"</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-except">except</span> Exception <span class="token keyword keyword-as">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"⚠️ Supabase连接失败: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string">"🔄 将使用本地存储作为备用"</span><span class="token punctuation">)</span>
+    SUPABASE_AVAILABLE <span class="token operator">=</span> <span class="token boolean">False</span>
+</code></pre><h3 id="32-代码文档化">3.2 代码文档化 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>详细的代码注释和文档字符串</li>
+<li>模块功能说明</li>
+<li>API接口文档</li>
+</ul>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token triple-quoted-string string">"""
+联邦学习训练系统 - LUNA16肺结节检测
+使用FedAvg算法进行分布式训练
+
+主要组件:
+1. FederatedServer: 联邦服务器，负责模型聚合
+2. FederatedClient: 联邦客户端，负责本地训练
+3. FedAvg算法实现
+4. 数据分片和分布
+"""</span>
+</code></pre><h3 id="33-兼容性设计">3.3 兼容性设计 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>跨平台兼容性（可在电脑端和移动端使用）</li>
+<li>多浏览器支持（经测试</li>
+<li>向后兼容的API设计</li>
+</ul>
+<hr>
+<h2 id="4-部署和运维自动化">4. 部署和运维自动化 </h2>
+<h3 id="41-云服务集成">4.1 云服务集成 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>Supabase云数据库集成，所有的账号密码都使用密文存储。</li>
+</ul>
+<h3 id="42-监控和日志">4.2 监控和日志 </h3>
+<p><strong>实施手段：</strong></p>
+<ul>
+<li>WebSocket连接状态监控（在用户端可以查看在线人数以及服务端是否在线，服务端可以看到每一个用户端的在线情况）</li>
+<li>用户活动跟踪（在服务端可以实时看到每一个用户的文件上传情况）</li>
+<li>训练过程监控（训练时服务端和客户端都可以实时查看当前的训练情况）</li>
+</ul>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// 连接状态监控</span>
+socket<span class="token punctuation">.</span><span class="token method function property-access">on</span><span class="token punctuation">(</span><span class="token string">'disconnect'</span><span class="token punctuation">,</span> <span class="token keyword keyword-function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">log</span><span class="token punctuation">(</span><span class="token string">'WebSocket 连接断开'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">updateConnectionStatus</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 自动重连机制</span>
+    <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span>reconnectAttempts <span class="token operator">&lt;</span> maxReconnectAttempts<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token function">setTimeout</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+            reconnectAttempts<span class="token operator">++</span><span class="token punctuation">;</span>
+            <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">尝试重连... (</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>reconnectAttempts<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>maxReconnectAttempts<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">)</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            socket<span class="token punctuation">.</span><span class="token method function property-access">connect</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">2000</span> <span class="token operator">*</span> reconnectAttempts<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><hr>
+<h2 id="5-采用的软件工程化工具和技术">5. 采用的软件工程化工具和技术 </h2>
+<h3 id="51-开发框架和库">5.1 开发框架和库 </h3>
+<ul>
+<li><strong>Flask</strong>: Web应用框架</li>
+<li><strong>SocketIO</strong>: 实时通信</li>
+<li><strong>PyTorch</strong>: 深度学习框架</li>
+<li><strong>SimpleITK</strong>: 医学图像处理</li>
+</ul>
+<h3 id="52-数据管理">5.2 数据管理 </h3>
+<ul>
+<li><strong>JSON</strong>: 结构化数据存储</li>
+<li><strong>Supabase</strong>: 云数据库服务</li>
+<li><strong>pandas</strong>: 数据处理和分析</li>
+</ul>
+<h3 id="53-前端技术">5.3 前端技术 </h3>
+<ul>
+<li><strong>JavaScript ES6+</strong>: 现代前端开发</li>
+<li><strong>WebSocket</strong>: 实时通信</li>
+<li><strong>CSS3</strong>: 响应式设计</li>
+</ul>
+<h3 id="54-部署和运维">5.4 部署和运维 </h3>
+<ul>
+<li><strong>gunicorn</strong>: WSGI服务器</li>
+<li><strong>dotenv</strong>: 环境变量管理</li>
+<li><strong>bcrypt</strong>: 密码加密</li>
+</ul>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>

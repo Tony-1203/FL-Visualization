@@ -30,6 +30,14 @@ bcrypt==3.2.0
 supabase==2.15.2
 dotenv
 
+# Testing dependencies
+pytest==7.4.3
+pytest-cov==4.1.0
+coverage==7.3.2
+unittest-xml-reporting==3.2.0
+typing-extensions==4.8.0
+pytest-mock==3.12.0
+
 # Additional Python standard library modules used:
 # - os (built-in)
 # - copy (built-in)

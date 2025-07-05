@@ -28,8 +28,8 @@ from typing import List, Dict, Tuple
 import random
 from collections import OrderedDict
 from datetime import datetime
-import sys  # 添加sys导入
-import json  # 添加JSON支持用于WebSocket消息
+import sys
+import json  # 添加JSON支持WebSocket消息
 
 
 # 训练历史数据管理函数
@@ -1304,12 +1304,10 @@ def train_federated_model(
         sys.stdout.flush()
         client_loaders = []
 
-    # 创建测试数据集 - 跳过测试阶段以避免错误
     print("跳过测试数据集创建...")
     test_loader = None
     sys.stdout.flush()
 
-    # 执行联邦学习训练
     print("开始执行联邦学习训练...")
     sys.stdout.flush()
 
@@ -1321,7 +1319,6 @@ def train_federated_model(
         client_data_dirs=client_data_dirs,
     )
 
-    # 解包返回值
     if isinstance(training_result, tuple):
         training_history, session_id = training_result
     else:
@@ -1432,11 +1429,11 @@ if __name__ == "__main__":
     # 示例2: 使用指定的客户端数据文件夹
     print("=== 示例: 使用指定的客户端数据文件夹 ===")
 
-    # 或者使用自定义的客户端文件夹
+    # 使用自定义的客户端文件夹
     client_data_directories = [
         "../uploads/client1_data",
-        "../uploads/client2_data",  # 客户端1的专用数据文件夹
-        "../uploads/client3_data",  # 客户端2的专用数据文件夹
+        "../uploads/client2_data",  
+        "../uploads/client3_data", 
     ]
 
     coordinator = train_federated_model(

@@ -63,7 +63,6 @@ class SimpleLungNodulePredictor:
 
         # 简单的resize到patch_size
         if any(s != p for s, p in zip(original_shape, patch_size)):
-            # 使用简单的中心裁剪或padding
             resized_image = self.resize_image(normalized_image, patch_size)
         else:
             resized_image = normalized_image

@@ -58,11 +58,9 @@ except ImportError as e:
     SUPABASE_AVAILABLE = False
     supabase = None
 
-# 从您现有的脚本导入训练函数
-# 确保 src 目录在 Python 路径中，或者调整导入方式
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
-from federated_training import train_federated_model
-from federated_inference import run_inference
+from src.federated_training import train_federated_model
+from src.federated_inference import run_inference
 
 app = Flask(__name__)
 app.secret_key = "123456"

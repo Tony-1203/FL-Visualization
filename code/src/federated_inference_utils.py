@@ -420,7 +420,7 @@ def visualize_federated_results(
         )
         axes[1, i].add_patch(circle2)
 
-        # 第三行：标记框显示（类似show_nodules.py的风格）
+        # 第三行：标记框显示
         data_marked = image_array[voxel_z].copy()
         radius = 20
         pad = 3
