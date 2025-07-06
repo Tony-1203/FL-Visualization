@@ -298,10 +298,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python 3.12
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.12
         
@@ -326,11 +326,19 @@ jobs:
         python test.py coverage > test_report.txt
         
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-results
         path: code/test_report.txt
 ```
+
+### GitHub Actions版本说明
+**重要更新**: 配置文件使用最新的GitHub Actions版本以确保兼容性：
+- `actions/checkout@v4` - 最新的代码检出动作
+- `actions/setup-python@v5` - 最新的Python环境配置
+- `actions/upload-artifact@v4` - 最新的工件上传动作（v3已弃用）
+
+**配置文件位置**: `.github/workflows/test.yml`
 
 ### 测试自动化流程
 1. **代码提交时**: 自动运行快速测试
