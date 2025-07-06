@@ -11,7 +11,7 @@ torch==2.6.0
 torchvision==0.21.0
 
 # Medical image processing
-simpleitk==2.5.0    
+simpleitk==2.5.0
 
 # Scientific computing
 scipy==1.14.0
